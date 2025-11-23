@@ -46,14 +46,14 @@ const AboutPage: React.FC = () => {
         
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-12 justify-center">
           {[
-            { name: "นายกิตติพงศ์", role: "Fullstack Developer", img: "Felix" },
-            { name: "นางสาวสุดา", role: "UX/UI Designer", img: "Aneka" },
-            { name: "อ.ที่ปรึกษา", role: "Project Advisor", img: "Grandma" }
+            { name: "นายเอกภพ", role: "Fullstack Developer", img: "ice" },
+            { name: "นายนราเทพ", role: "UX/UI Designer", img: "tar" },
+            { name: "นายวัชรสิท", role: "Project Advisor", img: "khun" }
           ].map((member, i) => (
             <div key={i} className="group">
               <div className={`w-28 h-28 mx-auto mb-6 rounded-full p-1 bg-linear-to-br ${styles.bgGradient} shadow-lg shadow-indigo-500/20`}>
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white">
-                   <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.img}`} alt={member.name} className="w-full h-full" />
+                   <img src={`/${member.img}.jfif`} alt={member.name} className="w-full h-full" />
                 </div>
               </div>
               <h4 className="text-xl font-bold text-slate-800 mb-1">{member.name}</h4>

@@ -55,7 +55,7 @@ export default function Header() {
             <img src="/pbntc-og.svg" alt="" className='w-15 h-15'/>
             <div className="flex flex-col justify-center h-full">
               <span className={`text-lg font-extrabold text-transparent bg-clip-text bg-linear-to-r ${styles.bgGradient} leading-none`}>
-                  PTC MAP
+                  PBNTC
               </span>
               <span className={`text-[0.65rem] font-medium tracking-widest uppercase leading-none mt-1 text-slate-400`}>
                   Technical College
