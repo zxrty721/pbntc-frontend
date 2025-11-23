@@ -48,7 +48,7 @@ const AboutPage: React.FC = () => {
           {[
             { name: "นายเอกภพ", role: "Fullstack Developer", img: "ice" },
             { name: "นายนราเทพ", role: "UX/UI Designer", img: "tar" },
-            { name: "นายวัชรสิท", role: "Project Advisor", img: "khun" }
+            { name: "นายวัชรสิทธิ์", role: "Project Advisor", img: "khun" }
           ].map((member, i) => (
             <div key={i} className="group">
               <div className={`w-28 h-28 mx-auto mb-6 rounded-full p-1 bg-linear-to-br ${styles.bgGradient} shadow-lg shadow-indigo-500/20`}>
