@@ -15,12 +15,13 @@ const MapPin: React.FC<MapPinProps> = ({ location, isActive, isDevMode, onClick 
   return (
     <button
       onClick={(e) => {
-        if (isDevMode) e.stopPropagation(); // DevMode ห้ามกด
+        if (isDevMode) e.stopPropagation(); 
         else onClick();
       }}
       className={`
         absolute flex items-center justify-center -translate-x-1/2 -translate-y-[85%]
-        w-10 h-10 md:w-14 md:h-14 transition-all duration-300 group
+        /* ✅ ปรับขนาด: มือถือเล็กลง (w-8 h-8), desktop ใหญ่ขึ้นเล็กน้อย */
+        w-8 h-8 md:w-12 md:h-12 lg:w-14 lg:h-14 transition-all duration-300 group
         ${isDevMode ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-110 hover:-translate-y-[95%] z-10 cursor-pointer'}
         ${isActive ? 'scale-125 -translate-y-full z-20' : ''}
       `}
@@ -36,7 +37,8 @@ const MapPin: React.FC<MapPinProps> = ({ location, isActive, isDevMode, onClick 
 
       {/* Label */}
       <div className="absolute top-[15%] w-[55%] h-[55%] bg-white rounded-full shadow-inner flex items-center justify-center">
-        <span className={`font-black text-[10px] md:text-sm leading-none ${style.text.replace('text-', 'text-slate-800')}`}>
+        {/* ✅ ปรับขนาดตัวอักษร: เล็กลง (text-[9px]), desktop ใหญ่ขึ้น (md:text-sm) */}
+        <span className={`font-black text-[9px] md:text-sm leading-none ${style.text.replace('text-', 'text-slate-800')}`}>
           {location.label}
         </span>
       </div>

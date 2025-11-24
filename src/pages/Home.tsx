@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { FaMapMarkedAlt, FaInfoCircle, FaMobileAlt, FaGraduationCap } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { styles } = useTheme();
@@ -28,12 +29,12 @@ const Home: React.FC = () => {
             เปิดประสบการณ์การค้นหาอาคารเรียนและสถานที่สำคัญภายในวิทยาลัยเทคนิคเพชรบูรณ์ 
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="/map" className={`px-8 py-4 bg-white ${styles.primary.replace('text-', 'text-')} font-bold rounded-xl shadow-lg hover:bg-gray-50 hover:scale-105 transition-all flex items-center gap-2`}>
+            <Link to="/map" className={`px-8 py-4 bg-white ${styles.primary.replace('text-', 'text-')} font-bold rounded-xl shadow-lg hover:bg-gray-50 hover:scale-105 transition-all flex items-center gap-2`}>
               <FaMapMarkedAlt /> เริ่มต้นใช้งานแผนที่
-            </a>
-            <a href="/contact" className="px-8 py-4 bg-black/20 text-white font-bold rounded-xl border border-white/30 hover:bg-black/30 transition-all flex items-center gap-2 backdrop-blur-sm">
+            </Link>
+            <Link to="/contact" className="px-8 py-4 bg-black/20 text-white font-bold rounded-xl border border-white/30 hover:bg-black/30 transition-all flex items-center gap-2 backdrop-blur-sm">
               <FaInfoCircle /> ติดต่อสอบถาม
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -52,7 +52,7 @@ export default function Header() {
           </button>
 
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/pbntc-og.svg" alt="" className='w-15 h-15'/>
+            <img src="/pbntc-og.svg" alt="pbntc" className='w-15 h-15' loading="lazy" />
             <div className="flex flex-col justify-center h-full">
               <span className={`text-lg font-extrabold text-transparent bg-clip-text bg-linear-to-r ${styles.bgGradient} leading-none`}>
                   PBNTC

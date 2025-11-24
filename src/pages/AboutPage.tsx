@@ -53,7 +53,12 @@ const AboutPage: React.FC = () => {
             <div key={i} className="group">
               <div className={`w-28 h-28 mx-auto mb-6 rounded-full p-1 bg-linear-to-br ${styles.bgGradient} shadow-lg shadow-indigo-500/20`}>
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white">
-                   <img src={`/${member.img}.jfif`} alt={member.name} className="w-full h-full" />
+                   <img 
+                      src={`/${member.img}.jfif`} 
+                      alt={member.name} 
+                      className="w-full h-full" 
+                      loading="lazy" 
+                    />
                 </div>
               </div>
               <h4 className="text-xl font-bold text-slate-800 mb-1">{member.name}</h4>
