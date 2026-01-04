@@ -1,6 +1,18 @@
 /* src/index.css */
 @import "tailwindcss";
 
+/* ให้ root และ body เต็มความสูง เพื่อให้ h-full ในหน้าใช้งานได้ถูกต้อง */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 html {
   scroll-behavior: smooth;
 }
