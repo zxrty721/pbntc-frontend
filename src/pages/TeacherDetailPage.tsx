@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Building2, Briefcase, UserCircle2 } from "lucide-react";
 import { teachersData } from "../data/teachers";

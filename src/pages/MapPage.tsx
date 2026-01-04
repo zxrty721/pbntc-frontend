@@ -10,7 +10,6 @@ import {
   Maximize,
   Minimize,
   Crosshair,
-  Map as MapIcon,
   MousePointer2,
   Lock,
   RotateCcw,
