@@ -1,9 +1,9 @@
 import React, { useRef, useState, useMemo, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
-  X, MapPin, Users, Sparkles, Building2, ChevronRight, ChevronLeft, 
-  Image as ImageIcon, Filter, ChevronDown, Check, Info 
+  X, MapPin, Users, Building2, ChevronRight, ChevronLeft, 
+  Image as ImageIcon, Filter, ChevronDown, Info 
 } from "lucide-react";
 import type { MapLocation } from "../../types";
 import { teachersData } from "../../data/teachers";
