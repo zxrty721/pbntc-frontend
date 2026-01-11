@@ -164,7 +164,7 @@ export const locations: MapLocation[] = [
     x: 56.48, 
     y: 73.64,
     category: "academic",
-    description: "",
+    description: "อาคารเรียน",
     detail: "สถานที่เรียนปฎิบัติการทำอาหารและทอผ้า",
     facilities: ["เตาแก๊ส", "เตาไฟฟ้า", "เตาอบ", "กี่ทอผ้า", "ห้องเรียน"],
     images: ["R.jpg"],

@@ -9,7 +9,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "หัวหน้าแผนก / ครูชำนาญการ",
     phone: "0897449666",
-    locationId: 7 // 👈 ระบุว่าอยู่ตึก 7
+    locationId: 5 // 👈 ระบุว่าอยู่ตึก 7
   },
   "701": {
     id: 701,
@@ -17,7 +17,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูชำนาญการพิเศษ",
     phone: "0866245105",
-    locationId: 7
+    locationId: 5
   },
   "702": {
     id: 702,
@@ -25,7 +25,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูชำนาญการ",
     phone: "0995690108",
-    locationId: 7
+    locationId: 5
   },
   "703": {
     id: 703,
@@ -33,7 +33,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูชำนาญการ",
     phone: "0849904628",
-    locationId: 7
+    locationId: 5
   },
   "704": {
     id: 704,
@@ -41,7 +41,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ผู้ช่วยหัวหน้าแผนก / ครู",
     phone: "0917594136",
-    locationId: 7
+    locationId: 5
   },
   "705": {
     id: 705,
@@ -49,7 +49,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูผู้ช่วย",
     phone: "0905863445",
-    locationId: 7
+    locationId: 5
   },
   "706": {
     id: 706,
@@ -57,7 +57,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูอัตราจ้าง",
     phone: "0612303043",
-    locationId: 7
+    locationId: 5
   },
   "707": {
     id: 707,
@@ -65,7 +65,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.DIGITAL,
     position: "ครูอัตราจ้าง",
     phone: "0910244240",
-    locationId: 7
+    locationId: 5
   },
   
   // --- แผนกวิชาการเลขานุการฯ (ประจำตึก 7) ---
@@ -75,7 +75,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.SECRETARY,
     position: "หัวหน้าแผนก / ครูชำนาญการ",
     phone: "0812817089",
-    locationId: 7
+    locationId: 5
   },
   "709": {
     id: 709,
@@ -83,7 +83,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.SECRETARY,
     position: "ครูอัตราจ้าง",
     phone: "0611645954",
-    locationId: 7
+    locationId: 5
   },
   "710": {
     id: 710,
@@ -91,7 +91,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.SECRETARY,
     position: "ครูอัตราจ้าง",
     phone: "",
-    locationId: 7
+    locationId: 5
   },
 
   // --- แผนกวิชาการบัญชี (ประจำตึก 7) ---
@@ -101,7 +101,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "หัวหน้าแผนก / ครูชำนาญการ",
     phone: "0918436332",
-    locationId: 7
+    locationId: 5
   },
   "712": {
     id: 712,
@@ -109,7 +109,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูชำนาญการ",
     phone: "0895667000",
-    locationId: 7
+    locationId: 5
   },
   "713": {
     id: 713,
@@ -117,7 +117,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครู",
     phone: "0956013253",
-    locationId: 7
+    locationId: 5
   },
   "714": {
     id: 714,
@@ -125,7 +125,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูชำนาญการ",
     phone: "0961646453",
-    locationId: 7
+    locationId: 5
   },
   "715": {
     id: 715,
@@ -133,7 +133,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูผู้ช่วย",
     phone: "0621291662",
-    locationId: 7
+    locationId: 5
   },
   "716": {
     id: 716,
@@ -141,7 +141,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูผู้ช่วย",
     phone: "0894298893",
-    locationId: 7
+    locationId: 5
   },
   "717": {
     id: 717,
@@ -149,7 +149,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูอัตราจ้าง",
     phone: "0932801166",
-    locationId: 7
+    locationId: 5
   },
   "718": {
     id: 718,
@@ -157,7 +157,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูอัตราจ้าง",
     phone: "0979942719",
-    locationId: 7
+    locationId: 5
   },
   "719": {
     id: 719,
@@ -165,7 +165,7 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูอัตราจ้าง",
     phone: "0640979007",
-    locationId: 7
+    locationId: 5
   },
   "720": {
     id: 720,
@@ -173,6 +173,6 @@ export const teachersData: Record<number, Teacher> = {
     department: DEPARTMENTS.ACCOUNTING,
     position: "ครูอัตราจ้าง",
     phone: "",
-    locationId: 7
+    locationId: 5
   }
 };
