@@ -291,7 +291,7 @@ export const locations: MapLocation[] = [
     id: 28,
     title: "อาคารสำนักงานผู้อำนวยการ",
     label: "U",
-    x: 39.46, y: 60.27,
+    x: 62.13, y: 68.24,
     category: "academic",
     detail: "ใช้สำหรับเข้าพบผู้อำนวยการ",
    facilities: [ "ห้องผู้อำนวยการ"],
