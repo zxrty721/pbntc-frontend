@@ -1,16 +1,17 @@
 export type CategoryType =
-  | "academic"  // อาคารเรียน
-  | "admin"     // ธุรการ
-  | "dorm"      // หอพัก
-  | "sport"     // กีฬา
-  | "landmark"  // จุดสังเกต
-  | "facility"  // สิ่งอำนวยความสะดวก
-  | "food"      // โรงอาหาร
-  | "parking"   // จอดรถ
-  | "health"    // พยาบาล
-  | "entrance"  // ทางเข้า
-  | "practice"  // ปฏิบัติการ
-  | "library";  // 👈 เพิ่มอันนี้ (ห้องสมุด/ศูนย์วิทยบริการ)
+  | "academic"
+  | "admin"
+  | "dorm"
+  | "sport"
+  | "landmark"
+  | "facility"
+  | "food"
+  | "parking"
+  | "health"
+  | "entrance"
+  | "practice"
+  | "library"
+  | "auditorium";
 
 export interface CategoryStyle {
   bg: string;
@@ -22,11 +23,12 @@ export interface CategoryStyle {
 export interface Teacher {
   id: number;
   name: string;
-  department: string;
+  department: string; // หรือจะใช้ DepartmentName ก็ได้
   position: string;
   imageUrl?: string;
   email?: string;
   phone?: string;
+  locationId?: number; // 👈 พระเอกของเรา: ระบุว่าครูอยู่ตึกไหน
 }
 
 export interface MapLocation {
@@ -40,7 +42,7 @@ export interface MapLocation {
   detail?: string;
   facilities?: string[];
   images?: string[];
-  teacherIds?: number[];
+  // teacherIds?: number[]; ❌ ลบทิ้งได้เลย ไม่ต้องใช้แล้ว
 }
 
 export interface IcogramItem {

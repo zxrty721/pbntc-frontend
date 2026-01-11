@@ -1,4 +1,10 @@
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TransformWrapper,
@@ -17,12 +23,13 @@ import {
   Minus,
   CheckCircle2,
   X,
+  Map as MapIcon,
 } from "lucide-react";
 
 // --- Assets & Components ---
-import mapBg from "../assets/map.png";
-import mapDataConfig from "../assets/map.json";
+import mapBg from "/map.jpeg";
 import { locations } from "../data/locations";
+import { teachersData } from "../data/teachers";
 import type { MapLocation } from "../types";
 import MapPinComponent from "../components/ui/MapPin";
 import LocationDetailCard from "../components/ui/LocationDetailCard";
@@ -30,76 +37,159 @@ import LocationDetailCard from "../components/ui/LocationDetailCard";
 type MapMode = "static" | "interactive" | "developer";
 
 const MapPage: React.FC = () => {
+  // --- Refs & States ---
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
-  const mapImageRef = useRef<HTMLImageElement>(null);
+  const mapWrapperRef = useRef<HTMLDivElement>(null);
 
-  // States
   const [mode, setMode] = useState<MapMode>("static");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
+    null,
+  );
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [devCoords, setDevCoords] = useState<{ x: number; y: number } | null>(null);
+  const [devCoords, setDevCoords] = useState<{ x: number; y: number } | null>(
+    null,
+  );
   const [copyStatus, setCopyStatus] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // --- Logic ---
+  // --- Initialize & Event Listeners ---
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // --- Logic: Search & Filter (UPDATED 🚀) ---
+  const filteredLocations = useMemo(() => {
+    if (!searchTerm) return [];
+    const lowerTerm = searchTerm.toLowerCase();
+
+    return locations.filter((loc) => {
+      // 1. ค้นหาจาก Title, Label, ID (พื้นฐาน)
+      const matchBasic =
+        loc.title.toLowerCase().includes(lowerTerm) ||
+        loc.label.toLowerCase().includes(lowerTerm) ||
+        loc.id.toString().includes(lowerTerm);
+
+      if (matchBasic) return true;
+
+      // 2. ค้นหาจากข้อมูลครู (ชื่อ และ แผนก) โดยดูจาก locationId
+      // ดึงครูทั้งหมดที่อยู่ตึกนี้
+      const teachersInLoc = Object.values(teachersData).filter(
+        (t) => t.locationId === loc.id
+      );
+
+      if (teachersInLoc.length > 0) {
+        return teachersInLoc.some((teacher) => {
+          // เช็คชื่อครู
+          const isNameMatch = teacher.name.toLowerCase().includes(lowerTerm);
+          // เช็คชื่อแผนก
+          const isDeptMatch = teacher.department
+            .toLowerCase()
+            .includes(lowerTerm);
+
+          return isNameMatch || isDeptMatch;
+        });
+      }
+
+      return false;
+    });
+  }, [searchTerm]);
+
+  // --- Helper: ดึงข้อความอธิบาย (Subtitle) ในผลลัพธ์การค้นหา ---
+  const getLocationSubtitle = (loc: MapLocation) => {
+    // ดึงครูทั้งหมดที่อยู่ตึกนี้
+    const teachersInLoc = Object.values(teachersData).filter(
+      (t) => t.locationId === loc.id
+    );
+
+    // ถ้าค้นหาแล้วเจอชื่อครู ให้โชว์ชื่อครูคนแรกที่ตรงกับคำค้น
+    if (searchTerm && teachersInLoc.length > 0) {
+      const lowerTerm = searchTerm.toLowerCase();
+      const matchedTeacher = teachersInLoc.find((t) =>
+        t.name.toLowerCase().includes(lowerTerm)
+      );
+
+      if (matchedTeacher) {
+        return `พบ: ${matchedTeacher.name}`;
+      }
+    }
+
+    // ถ้าไม่เจอชื่อครู (เช่นค้นหาแผนก หรือดูทั่วไป) ให้โชว์รายชื่อแผนก
+    if (teachersInLoc.length > 0) {
+      const departments = [
+        ...new Set(teachersInLoc.map((t) => t.department).filter(Boolean)),
+      ];
+      if (departments.length > 0) {
+        return departments.join(", ");
+      }
+    }
+
+    return loc.category;
+  };
+
+  // --- Logic: Map Interaction ---
+  const handleSelectLocation = useCallback(
+    (loc: MapLocation) => {
+      if (mode === "developer") return;
+
+      setSelectedLocation(loc);
+      setSearchTerm("");
+
+      if (mode === "interactive" && transformRef.current) {
+        transformRef.current.zoomToElement(
+          `pin-${loc.id}`,
+          2.5,
+          800,
+          "easeInOutQuad",
+        );
+      }
+    },
+    [mode],
+  );
 
   const handleModeChange = (newMode: MapMode) => {
     setMode(newMode);
     setSearchTerm("");
     setSelectedLocation(null);
     setDevCoords(null);
-    
-    // Reset View
-    if (transformRef.current) {
-      setTimeout(() => {
-        transformRef.current?.centerView(1, 500);
-      }, 100);
-    }
+    setTimeout(() => transformRef.current?.centerView(1, 500), 50);
   };
 
-  const filteredLocations = useMemo(() => {
-    if (!searchTerm) return [];
-    const lowerTerm = searchTerm.toLowerCase();
-    return locations.filter(
-      (loc) =>
-        loc.title.toLowerCase().includes(lowerTerm) ||
-        loc.label.toLowerCase().includes(lowerTerm) ||
-        loc.id.toString().includes(lowerTerm)
-    );
-  }, [searchTerm]);
-
-  const handleSelectLocation = useCallback((loc: MapLocation) => {
-    if (mode === "developer") return;
-
-    setSelectedLocation(loc);
-    setSearchTerm("");
-    if (mode === "interactive" && transformRef.current) {
-      transformRef.current.zoomToElement(`pin-${loc.id}`, 2.5, 800, "easeInOutQuad");
-    }
-  }, [mode]);
-
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (mode !== "developer" || !mapImageRef.current) {
-      // ถ้าคลิกพื้นหลัง (ไม่ใช่ Pin) ให้ยกเลิกการเลือก
-      if (e.target === mapImageRef.current) setSelectedLocation(null);
+    if (mode !== "developer" || !mapWrapperRef.current) {
+      if (
+        (e.target as HTMLElement).tagName === "IMG" ||
+        e.target === mapWrapperRef.current
+      ) {
+        setSelectedLocation(null);
+      }
       return;
     }
 
-    const rect = mapImageRef.current.getBoundingClientRect();
+    const rect = mapWrapperRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
     const xPercent = Number(((x / rect.width) * 100).toFixed(2));
     const yPercent = Number(((y / rect.height) * 100).toFixed(2));
 
-    setDevCoords({ x: xPercent, y: yPercent });
-    navigator.clipboard.writeText(`x: ${xPercent}, y: ${yPercent},`);
+    const safeX = Math.max(0, Math.min(100, xPercent));
+    const safeY = Math.max(0, Math.min(100, yPercent));
+
+    setDevCoords({ x: safeX, y: safeY });
+    navigator.clipboard.writeText(`x: ${safeX}, y: ${safeY},`);
     setCopyStatus(true);
     setTimeout(() => setCopyStatus(false), 1500);
   };
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      document.documentElement
+        .requestFullscreen()
+        .catch((e) => console.error(e));
       setIsFullScreen(true);
     } else {
       if (document.exitFullscreen) {
@@ -109,194 +199,316 @@ const MapPage: React.FC = () => {
     }
   };
 
-  const isMapLocked = mode === "static" || mode === "developer";
-
-  // 🔥 Optimization: แยกการ Render Pin ออกมาเป็น useMemo เพื่อลดการ Re-render
+  // --- Rendered Pins ---
   const renderedPins = useMemo(() => {
-    return (
-      <div className={`absolute inset-0 z-10 ${mode === "developer" ? "opacity-40 grayscale" : ""}`}>
-        {locations.map((loc) => {
-            const isMatch = filteredLocations.some(f => f.id === loc.id);
-            const isSelected = selectedLocation?.id === loc.id;
-            const isDimmed = (searchTerm && !isMatch) || (selectedLocation && !isSelected);
+    return locations.map((loc) => {
+      const isMatch = filteredLocations.some((f) => f.id === loc.id);
+      const isSelected = selectedLocation?.id === loc.id;
+      const isDimmed =
+        (searchTerm && !isMatch) || (selectedLocation && !isSelected);
 
-            return (
-              <div key={loc.id} id={`pin-${loc.id}`}>
-                <MapPinComponent
-                  location={loc}
-                  isActive={isSelected}
-                  isDimmed={!!isDimmed}
-                  isDevMode={mode === "developer"}
-                  onClick={() => handleSelectLocation(loc)}
-                />
-              </div>
-            );
-        })}
-      </div>
-    );
-  }, [locations, filteredLocations, selectedLocation, mode, searchTerm, handleSelectLocation]);
-
+      return (
+        <div
+          key={loc.id}
+          id={`pin-${loc.id}`}
+          className="absolute z-10"
+          style={{
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        >
+          <MapPinComponent
+            location={loc}
+            isActive={isSelected}
+            isDimmed={!!isDimmed}
+            isDevMode={mode === "developer"}
+            onClick={() => handleSelectLocation(loc)}
+          />
+        </div>
+      );
+    });
+  }, [
+    locations,
+    filteredLocations,
+    selectedLocation,
+    mode,
+    searchTerm,
+    handleSelectLocation,
+  ]);
 
   return (
-    <div 
-      className={`
-        relative w-full h-full overflow-hidden flex flex-col transition-all duration-300 bg-slate-100
-        ${isFullScreen 
-            ? "fixed inset-0 z-[9999] rounded-none border-0" 
-            : "rounded-none border-0 sm:rounded-[30px] sm:border-4 border-white shadow-xl"
-        }
-      `}
+    <div
+      className={`flex flex-col w-full h-[100dvh] bg-slate-50 overflow-hidden font-sans ${isFullScreen ? "p-0" : "p-2 md:p-6"}`}
     >
-      
-      {/* =========================================
-          TOP BAR
-      ========================================= */}
-      <div className="absolute top-0 left-0 right-0 z-40 p-4 pointer-events-none flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        
-        {/* Search */}
-        <div className={`pointer-events-auto w-full max-w-xs transition-opacity duration-300 ${mode === "developer" ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          <div className="relative group">
-            <div className="flex items-center bg-white/90 backdrop-blur-md border border-slate-200 shadow-sm rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-400 transition-all">
-              <div className="pl-3 text-slate-400"><Search size={18} /></div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="ค้นหา..."
-                className="w-full py-2.5 px-3 text-sm font-bold text-slate-700 bg-transparent outline-none placeholder:text-slate-400"
-              />
-              {searchTerm && (
-                <button onClick={() => setSearchTerm("")} className="pr-3 text-slate-400 hover:text-slate-600"><X size={16} /></button>
-              )}
+      {!isFullScreen && (
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 md:mb-6 px-1">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto z-50">
+            {/* Logo/Title */}
+            <div className="hidden md:flex items-center gap-3 text-slate-700 mr-4">
+              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-blue-200 shadow-lg">
+                <MapIcon size={24} />
+              </div>
+              <div>
+                <h1 className="text-xl font-black tracking-tight leading-none">
+                  PBNTC
+                </h1>
+                <p className="text-xs font-semibold text-slate-400">
+                  Digital Map
+                </p>
+              </div>
             </div>
-            <AnimatePresence>
-              {filteredLocations.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 max-h-52 overflow-y-auto custom-scrollbar"
-                >
-                  {filteredLocations.map((loc) => (
-                    <button key={loc.id} onClick={() => handleSelectLocation(loc)} className="w-full text-left px-4 py-2.5 border-b border-slate-50 hover:bg-blue-50 transition-colors flex items-center justify-between group/item">
-                      <span className="text-xs font-bold text-slate-700 group-hover/item:text-blue-600">{loc.title}</span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+
+            {/* Search Bar */}
+            <div className="relative w-full md:w-80 group">
+              <div className="flex items-center bg-white border border-slate-200 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+                <div className="pl-3 text-slate-400">
+                  <Search size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="ค้นหาอาคาร, แผนก, ชื่อครู..."
+                  className="w-full py-2.5 px-3 text-sm font-bold text-slate-600 bg-transparent outline-none placeholder:text-slate-400"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="pr-3 text-slate-400 hover:text-red-500"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Dropdown Result */}
+              <AnimatePresence>
+                {filteredLocations.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto custom-scrollbar z-[60]"
+                  >
+                    {filteredLocations.map((loc) => (
+                      <button
+                        key={loc.id}
+                        onClick={() => handleSelectLocation(loc)}
+                        className="w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-blue-50 transition-colors flex items-center justify-between group"
+                      >
+                        <div className="flex flex-col overflow-hidden">
+                          {/* Title */}
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 truncate">
+                            {loc.title}
+                          </span>
+                          {/* Subtitle: แสดงชื่อครูที่เจอ หรือ แผนก */}
+                          <span className="text-xs text-slate-400 truncate mt-0.5">
+                            {getLocationSubtitle(loc)}
+                          </span>
+                        </div>
+
+                        {/* Label Badge */}
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap ml-2">
+                          {loc.label}
+                        </span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-full md:w-auto">
+            <ModeButton
+              active={mode === "static"}
+              onClick={() => handleModeChange("static")}
+              icon={<Lock size={16} />}
+              label="ล็อค"
+            />
+            <ModeButton
+              active={mode === "interactive"}
+              onClick={() => handleModeChange("interactive")}
+              icon={<MousePointer2 size={16} />}
+              label="สำรวจ"
+            />
+            <ModeButton
+              active={mode === "developer"}
+              onClick={() => handleModeChange("developer")}
+              icon={<Crosshair size={16} />}
+              label="Dev"
+              isDev
+            />
           </div>
         </div>
+      )}
 
-        {/* Mode Switcher */}
-        <div className="pointer-events-auto bg-white/90 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-1 mx-auto sm:mx-0">
-          <ModeButton active={mode === "static"} onClick={() => handleModeChange("static")} icon={<Lock size={14} />} label="Static" />
-          <ModeButton active={mode === "interactive"} onClick={() => handleModeChange("interactive")} icon={<MousePointer2 size={14} />} label="Interactive" />
-          <ModeButton active={mode === "developer"} onClick={() => handleModeChange("developer")} icon={<Crosshair size={14} />} label="Dev" isDev />
-        </div>
-      </div>
-
-      {/* =========================================
-          MAP AREA
-      ========================================= */}
-      <div className={`flex-1 relative overflow-hidden bg-slate-200/50 ${mode === 'developer' ? 'cursor-crosshair' : ''}`}>
-        
-        {/* Grid Background */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      {/* Map Content */}
+      <div
+        className={`
+        relative flex-1 w-full overflow-hidden bg-slate-200/50
+        transition-all duration-500 ease-in-out
+        ${
+          isFullScreen
+            ? "rounded-none border-0 shadow-none"
+            : "rounded-[1.5rem] md:rounded-[2.5rem] border-[4px] border-white shadow-2xl shadow-slate-200"
+        }
+      `}
+      >
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none z-0"
+          style={{
+            backgroundImage: "radial-gradient(#64748b 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
 
         <TransformWrapper
           ref={transformRef}
           initialScale={1}
-          minScale={0.5}
-          maxScale={6}
+          minScale={0.2}
+          maxScale={8}
           centerOnInit={true}
-          disabled={isMapLocked}
-          wheel={{ disabled: isMapLocked }}
-          panning={{ disabled: isMapLocked, velocityDisabled: true }} // ปิด velocity เพื่อความเสถียร
-          doubleClick={{ disabled: isMapLocked }}
-          // Optimization props
+          disabled={mode === "static"}
           limitToBounds={false}
+          smooth={true}
+          wheel={{ step: 0.1 }}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
-              {/* Controls */}
-              <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-3 pointer-events-auto">
+              <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-40 flex flex-col gap-2">
                 {mode === "interactive" && (
-                  <div className="flex flex-col bg-white/90 backdrop-blur shadow-sm rounded-xl overflow-hidden border border-slate-200">
-                    <button onClick={() => zoomIn()} className="p-2.5 hover:bg-slate-100 text-slate-600 border-b border-slate-100"><Plus size={18} /></button>
-                    <button onClick={() => zoomOut()} className="p-2.5 hover:bg-slate-100 text-slate-600 border-b border-slate-100"><Minus size={18} /></button>
-                    <button onClick={() => resetTransform()} className="p-2.5 hover:bg-slate-100 text-slate-600"><RotateCcw size={16} /></button>
+                  <div className="flex flex-col bg-white/90 backdrop-blur shadow-lg rounded-xl overflow-hidden border border-white/50">
+                    <ControlButton
+                      onClick={() => zoomIn()}
+                      icon={<Plus size={20} />}
+                    />
+                    <ControlButton
+                      onClick={() => zoomOut()}
+                      icon={<Minus size={20} />}
+                    />
+                    <ControlButton
+                      onClick={() => resetTransform()}
+                      icon={<RotateCcw size={18} />}
+                    />
                   </div>
                 )}
-                <button onClick={toggleFullScreen} className="p-2.5 bg-white/90 backdrop-blur shadow-sm rounded-xl text-slate-600 hover:bg-slate-100 border border-slate-200">
-                  {isFullScreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                <button
+                  onClick={toggleFullScreen}
+                  className="p-3 bg-slate-800 text-white shadow-lg rounded-xl hover:bg-slate-700 active:scale-95 transition-all"
+                  title="Full Screen"
+                >
+                  {isFullScreen ? (
+                    <Minimize size={20} />
+                  ) : (
+                    <Maximize size={20} />
+                  )}
                 </button>
               </div>
 
-              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
-                <div 
-                  className="relative shadow-2xl shadow-slate-400/20"
-                  style={{ width: mapDataConfig.width, height: mapDataConfig.height }}
+              <TransformComponent
+                wrapperClass="!w-full !h-full"
+                contentClass="!w-full !h-full flex items-center justify-center"
+              >
+                <div
+                  ref={mapWrapperRef}
+                  className={`relative shadow-xl transition-shadow duration-300 ${mode === "developer" ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"}`}
                   onClick={handleMapClick}
+                  style={{ width: "fit-content", height: "fit-content" }}
                 >
                   <img
-                    ref={mapImageRef}
                     src={mapBg}
-                    alt="Map"
-                    className="w-full h-full object-contain select-none pointer-events-none"
+                    alt="School Map"
+                    className="block select-none pointer-events-none"
                     draggable={false}
-                    // Optimize image rendering
-                    style={{ willChange: 'transform' }} 
+                    style={{
+                      minWidth: isMobile ? "150vw" : "auto",
+                      minHeight: isMobile ? "auto" : "85vh",
+                      width: "auto",
+                      height: "auto",
+                    }}
                   />
-
-                  {/* Render Pins (Memoized) */}
-                  {renderedPins}
-
-                  {/* Dev Marker */}
+                  <div
+                    className={`absolute inset-0 z-10 ${mode === "developer" ? "opacity-50 grayscale" : "opacity-100"}`}
+                  >
+                    {renderedPins}
+                  </div>
                   {mode === "developer" && devCoords && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute w-0 h-0 z-50 flex items-center justify-center pointer-events-none"
-                      style={{ left: `${devCoords.x}%`, top: `${devCoords.y}%` }}
+                    <div
+                      className="absolute z-50 pointer-events-none"
+                      style={{
+                        left: `${devCoords.x}%`,
+                        top: `${devCoords.y}%`,
+                      }}
                     >
-                      <div className="w-4 h-4 rounded-full border-2 border-red-500 bg-red-500/30 animate-ping absolute" />
-                      <div className="w-2 h-2 rounded-full bg-red-600 absolute" />
-                      <div className="absolute top-4 left-4 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap font-mono z-50">
-                        x: {devCoords.x}%, y: {devCoords.y}%
-                      </div>
-                    </motion.div>
+                      <span className="relative flex h-4 w-4 -translate-x-1/2 -translate-y-1/2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white shadow-sm"></span>
+                      </span>
+                    </div>
                   )}
                 </div>
               </TransformComponent>
             </>
           )}
         </TransformWrapper>
+
+        <AnimatePresence>
+          {selectedLocation && mode !== "developer" && (
+            <LocationDetailCard
+              location={selectedLocation}
+              onClose={() => setSelectedLocation(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {copyStatus && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 backdrop-blur-sm"
+            >
+              <CheckCircle2 size={16} className="text-green-400" />
+              <span className="text-xs font-bold">Coordinates Copied!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      <AnimatePresence>
-        {copyStatus && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[99999] bg-slate-800 text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-green-400" /> <span className="text-xs font-bold">Copied!</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {selectedLocation && mode !== "developer" && (
-          <LocationDetailCard location={selectedLocation} onClose={() => setSelectedLocation(null)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
-const ModeButton = ({ active, onClick, icon, label, isDev = false }: any) => (
+const ModeButton = ({ active, onClick, icon, label, isDev }: any) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 ${active ? (isDev ? 'bg-red-500 text-white shadow-red-200 shadow-md' : 'bg-slate-800 text-white shadow-slate-300 shadow-md') : 'text-slate-500 hover:bg-slate-100'}`}
+    className={`
+      flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all
+      ${
+        active
+          ? isDev
+            ? "bg-red-500 text-white shadow-md"
+            : "bg-slate-800 text-white shadow-md"
+          : "text-slate-500 hover:bg-slate-50"
+      }
+    `}
   >
-    {icon} <span className="hidden sm:inline">{label}</span>
+    {icon}
+    <span>{label}</span>
+  </button>
+);
+
+const ControlButton = ({ onClick, icon }: any) => (
+  <button
+    onClick={onClick}
+    className="p-3 hover:bg-slate-50 text-slate-700 border-b border-slate-100 last:border-0 active:bg-blue-50"
+  >
+    {icon}
   </button>
 );
 

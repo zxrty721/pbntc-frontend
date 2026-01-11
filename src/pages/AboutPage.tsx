@@ -72,8 +72,9 @@ const AboutPage: React.FC = () => {
                 {/* Profile Image */}
                 <div className={`w-28 h-28 mx-auto mb-6 rounded-full p-1 bg-linear-to-br ${styles.bgGradient} shadow-lg shadow-indigo-500/20`}>
                   <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white">
+                    {/* 👇 เปลี่ยน Path ตรงนี้ครับ */}
                     <img
-                      src={`/${member.img}.jfif`}
+                      src={`https://img.pbntc.site/${member.img}.webp`}
                       alt={member.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -97,7 +98,7 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer Note (Standardized) */}
+        {/* Footer Note */}
         <div className="py-8 text-center border-t border-slate-200 w-full">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white shadow-sm">
             <FaGraduationCap className="w-4 h-4 text-slate-400" />

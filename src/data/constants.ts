@@ -9,27 +9,30 @@ import {
   Car,
   HeartPulse,
   LogIn,
-  Hammer, // 👈 เพิ่ม icon สำหรับ Practice
-  Library, // 👈 อย่าลืม import icon Library มาด้วยนะครับ
+  Hammer,
+  Library,
+  Mic2, // 👈 Import Icon ใหม่สำหรับหอประชุม
 } from "lucide-react";
 import type { CategoryType, CategoryStyle } from "../types";
 
-// 1. กำหนดสี Hex Code สำหรับ Pin โดยเฉพาะ (Source of Truth)
+// 1. กำหนดสี Hex Code
 export const CATEGORY_PIN_COLORS: Record<CategoryType, string> = {
-  academic: "#9333ea", // Purple-600
-  admin:    "#e11d48", // Rose-600
-  dorm:     "#3b82f6", // Blue-500
-  sport:    "#ca8a04", // Yellow-600
-  landmark: "#10b981", // Emerald-500
-  facility: "#4b5563", // Gray-600
-  food:     "#f97316", // Orange-500
-  parking:  "#475569", // Slate-600
-  health:   "#dc2626", // Red-600
-  entrance: "#18181b", // Zinc-900
-  practice: "#d97706", // Amber-600 (สีส้มเข้ม สำหรับโรงฝึกงาน)
+  academic: "#9333ea", 
+  admin:    "#e11d48", 
+  dorm:     "#3b82f6", 
+  sport:    "#ca8a04", 
+  landmark: "#10b981", 
+  facility: "#4b5563", 
+  food:     "#f97316", 
+  parking:  "#475569", 
+  health:   "#dc2626", 
+  entrance: "#18181b", 
+  practice: "#d97706",
   library:  "#0891b2",
+  auditorium: "#4f46e5", // 👈 เพิ่มสี Indigo-600 สำหรับหอประชุม
 };
 
+// 2. กำหนด Style
 export const CATEGORY_STYLES: Record<CategoryType, CategoryStyle> = {
   academic: {
     bg: "bg-purple-100",
@@ -91,7 +94,6 @@ export const CATEGORY_STYLES: Record<CategoryType, CategoryStyle> = {
     pinColor: "text-zinc-800",
     icon: LogIn,
   },
-  // เพิ่มหมวด Practice ให้ครบ
   practice: {
     bg: "bg-amber-100",
     text: "text-amber-800",
@@ -103,5 +105,12 @@ export const CATEGORY_STYLES: Record<CategoryType, CategoryStyle> = {
     text: "text-cyan-800",
     pinColor: "text-cyan-600",
     icon: Library,
+  },
+  // 👈 เพิ่มส่วนนี้ให้ครบ
+  auditorium: {
+    bg: "bg-indigo-100",
+    text: "text-indigo-800",
+    pinColor: "text-indigo-600",
+    icon: Mic2, 
   },
 };
