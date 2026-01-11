@@ -25,11 +25,11 @@ interface Props {
 const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // --- Data Logic (UPDATED 🚀) ---
+  // --- Data Logic ---
   const allTeachers = useMemo(() => {
     // กรองครูทั้งหมดที่มี locationId ตรงกับ id ของตึกนี้
     return Object.values(teachersData).filter(
-      (teacher) => teacher.locationId === location.id
+      (teacher) => teacher.locationId === location.id,
     );
   }, [location.id]);
 
@@ -38,7 +38,7 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
     if (!location.images || location.images.length === 0) return [];
     const baseUrl = "https://zone.pbntc.site/";
     return location.images.map((img) =>
-      img.startsWith("http") ? img : `${baseUrl}${img}`
+      img.startsWith("http") ? img : `${baseUrl}${img}`,
     );
   }, [location.images]);
 
@@ -203,29 +203,25 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Detail Content (ใช้ detail อย่างเดียว) */}
               <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-white">
                 <div className="space-y-6 max-w-3xl mx-auto">
-                  <section>
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <MapPin size={16} /> ข้อมูลสถานที่
-                    </h3>
-                    <p className="text-base text-slate-700 leading-relaxed font-medium">
-                      {location.description}
-                    </p>
-                  </section>
+                  
+                  {/* แสดงเฉพาะ Detail เท่านั้น (ถ้ามี) */}
                   {location.detail && (
-                    <section className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                      <h4 className="text-sm font-bold text-slate-800 mb-1">
-                        รายละเอียดเพิ่มเติม
-                      </h4>
-                      <p className="text-slate-600 text-sm leading-relaxed">
+                    <section>
+                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <MapPin size={16} /> เกี่ยวกับสถานที่
+                      </h3>
+                      <p className="text-base text-slate-700 leading-relaxed font-medium">
                         {location.detail}
                       </p>
                     </section>
                   )}
+
+                  {/* สิ่งอำนวยความสะดวก */}
                   {location.facilities && location.facilities.length > 0 && (
-                    <section>
+                    <section className={location.detail ? "pt-2" : ""}>
                       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">
                         สิ่งอำนวยความสะดวก
                       </h3>
@@ -233,7 +229,7 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
                         {location.facilities.map((f, i) => (
                           <div
                             key={i}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
                           >
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                             <span className="text-xs md:text-sm font-medium text-slate-700">

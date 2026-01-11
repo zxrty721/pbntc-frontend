@@ -1,18 +1,19 @@
 export type CategoryType =
-  | "academic"
-  | "admin"
-  | "dorm"
-  | "sport"
-  | "landmark"
-  | "facility"
-  | "food"
-  | "parking"
-  | "health"
-  | "entrance"
-  | "practice"
-  | "library"
-  | "auditorium";
-
+  | "academic"   // อาคารเรียน / วิชาการ
+  | "admin"      // อาคารอำนวยการ / สำนักงานบริหาร
+  | "dorm"       // หอพักนักเรียน/นักศึกษา
+  | "sport"      // สนามกีฬา / โรงยิม
+  | "landmark"   // จุดสังเกต / สถานที่สำคัญ
+  | "facility"   // สิ่งอำนวยความสะดวก
+  | "food"       // โรงอาหาร / ร้านค้า
+  | "parking"    // ลานจอดรถ
+  | "health"     // ห้องพยาบาล
+  | "entrance"   // ทางเข้า / ป้อมยาม
+  | "practice"   // โรงฝึกงาน / ห้องปฏิบัติการ
+  | "library"    // ห้องสมุด / ศูนย์วิทยบริการ
+  | "auditorium" // หอประชุม
+  ;
+  
 export interface CategoryStyle {
   bg: string;
   text: string;
@@ -38,7 +39,6 @@ export interface MapLocation {
   x: number;
   y: number;
   category: CategoryType;
-  description: string;
   detail?: string;
   facilities?: string[];
   images?: string[];
