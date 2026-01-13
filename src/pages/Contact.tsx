@@ -64,9 +64,15 @@ const Contact: React.FC = () => {
       setStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
       setTimeout(() => setStatus("idle"), 5000);
-    } catch (error: any) {
+
+      // ✅ แก้ไขตรงนี้: เปลี่ยน any เป็น unknown และเช็ค type
+    } catch (error: unknown) {
       setStatus("error");
-      setErrorMessage(error.message || "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      let msg = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+      if (error instanceof Error) {
+        msg = error.message;
+      }
+      setErrorMessage(msg);
     }
   };
 
@@ -79,7 +85,8 @@ const Contact: React.FC = () => {
 
   return (
     <div
-      className={`w-full min-h-screen py-16 md:py-24 px-4 md:px-8 overflow-y-auto font-sans transition-colors duration-300 ${styles.bgBody}`}
+      // ✅ แก้ไข: ลบ ${styles.bgBody} ออกเพื่อให้พื้นหลังโปร่งใส
+      className="w-full min-h-screen pb-16 md:pb-24 px-4 md:px-8"
     >
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}

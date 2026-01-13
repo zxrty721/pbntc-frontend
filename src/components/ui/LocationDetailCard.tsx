@@ -7,17 +7,15 @@ import {
   Building2,
   ChevronRight,
   ChevronLeft,
-  Image as ImageIcon,
-  Filter,
-  ChevronDown,
   Info,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { MapLocation } from "../../types";
 import { teachersData } from "../../data/teachers";
 import { useTheme } from "../../context/ThemeContext";
 
-// ✅ 1. Import Component ใหม่เข้ามา
 import TeacherDetailOverlay from "./TeacherDetailPage";
+import TeacherList from "./TeacherList";
 
 interface Props {
   location: MapLocation;
@@ -28,16 +26,12 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
   const { styles, theme } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // --- States ---
-  const [selectedDept, setSelectedDept] = useState("ทั้งหมด");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"info" | "personnel">("info");
-  
-  // ✅ 2. เพิ่ม State สำหรับเก็บ ID ครูที่ถูกเลือก
-  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
+    null,
+  );
 
-  // --- Data Logic ---
   const allTeachers = useMemo(() => {
     return Object.values(teachersData).filter(
       (teacher) => teacher.locationId === location.id,
@@ -52,17 +46,7 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
     );
   }, [location.images]);
 
-  const departments = useMemo(() => {
-    const deps = new Set(allTeachers.map((t) => t.department).filter(Boolean));
-    return ["ทั้งหมด", ...Array.from(deps)];
-  }, [allTeachers]);
-
-  const filteredTeachers = useMemo(() => {
-    if (selectedDept === "ทั้งหมด") return allTeachers;
-    return allTeachers.filter((t) => t.department === selectedDept);
-  }, [allTeachers, selectedDept]);
-
-  // --- Handlers ---
+  // Gallery Handlers
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { clientWidth } = scrollRef.current;
@@ -71,13 +55,16 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
     }
   };
 
+  const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
+
   const showNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setLightboxIndex((prev) =>
       prev === null || prev === images.length - 1 ? 0 : prev + 1,
     );
   };
+
   const showPrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setLightboxIndex((prev) =>
@@ -85,246 +72,246 @@ const LocationDetailCard: React.FC<Props> = memo(({ location, onClose }) => {
     );
   };
 
-  // Helper Variables
-  const bgColor = theme === "dark" ? "bg-slate-900" : "bg-white";
-  const subBgColor = theme === "dark" ? "bg-slate-950" : "bg-slate-50";
-  const borderColor = theme === "dark" ? "border-slate-800" : "border-slate-200";
-  const textColor = styles.textBody;
-  const headingColor = styles.textHeading;
+  const isDark = theme === "dark";
+  const bgMain = isDark ? "bg-slate-900" : "bg-white";
+  const borderCol = isDark ? "border-slate-800" : "border-slate-200";
 
   return (
     <>
-      <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6 overflow-hidden">
-        {/* Overlay */}
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8">
+        {/* Backdrop (Solid Black, No Blur) */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 bg-black/90"
+          className="absolute inset-0 bg-black/80"
           onClick={onClose}
         />
 
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 z-[250] p-2.5 rounded-full text-white transition-all shadow-lg hover:opacity-90 border border-white/20 ${styles.primaryBg}`}
+          className={`absolute top-4 right-4 md:top-6 md:right-6 z-[250] p-3 rounded-full text-white shadow-xl hover:scale-105 active:scale-95 transition-all ${styles.primaryBg}`}
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="relative z-10 w-full max-w-[95rem] h-[90vh] md:h-[85vh] flex flex-col gap-4 md:gap-6 px-4 pb-6 md:p-0">
-          {/* Mobile Tab Switcher */}
-          <div
-            className={`md:hidden shrink-0 flex w-full p-1 rounded-2xl border ${borderColor} ${theme === "dark" ? "bg-slate-900" : "bg-slate-100"}`}
-          >
+        {/* Content Wrapper */}
+        <div className="relative z-10 w-full max-w-6xl h-[85vh] flex flex-col gap-4 pointer-events-none">
+          {/* Mobile Tab (Visible only on Mobile) */}
+          <div className="md:hidden pointer-events-auto flex gap-2 px-1">
             <button
               onClick={() => setMobileTab("info")}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all
-                ${mobileTab === "info" ? `${bgColor} ${styles.primary} shadow-sm` : "text-slate-500"}`}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg transition-all ${
+                mobileTab === "info"
+                  ? `${styles.primaryBg} text-white`
+                  : `${isDark ? "bg-slate-800 text-slate-400" : "bg-white text-slate-600"}`
+              }`}
             >
-              <Info size={16} /> ข้อมูล
+              <Info size={18} /> ข้อมูล
             </button>
             <button
               onClick={() => setMobileTab("personnel")}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all
-                ${mobileTab === "personnel" ? `${bgColor} ${styles.primary} shadow-sm` : "text-slate-500"}`}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg transition-all ${
+                mobileTab === "personnel"
+                  ? `${styles.primaryBg} text-white`
+                  : `${isDark ? "bg-slate-800 text-slate-400" : "bg-white text-slate-600"}`
+              }`}
             >
-              <Users size={16} /> บุคลากร ({filteredTeachers.length})
+              <Users size={18} /> บุคลากร ({allTeachers.length})
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
-            {/* CARD 1: INFO */}
+          {/* Grid Layout */}
+          <div className="flex-1 flex gap-6 min-h-0 pointer-events-auto">
+            {/* Left Column: Info & Images */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
               className={`
-                flex-1 ${bgColor} rounded-[20px] shadow-2xl overflow-hidden flex-col relative md:flex order-2 md:order-1
-                ${mobileTab === "info" ? "flex" : "hidden"}
+                flex-1 flex flex-col rounded-3xl overflow-hidden shadow-2xl border ${borderCol} ${bgMain}
+                ${mobileTab === "info" ? "flex" : "hidden md:flex"}
               `}
             >
-               {/* ... (ส่วนแสดงรูปภาพและข้อมูลสถานที่คงเดิม ไม่ต้องแก้) ... */}
-               <div className={`relative h-[40%] shrink-0 group ${theme === "dark" ? "bg-slate-800" : "bg-slate-100"}`}>
+              {/* Image Slider */}
+              <div className="relative h-[40%] md:h-[50%] bg-black shrink-0 group">
                 {images.length > 0 ? (
-                  <div ref={scrollRef} className="w-full h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">
+                  <div
+                    ref={scrollRef}
+                    className="w-full h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+                  >
                     {images.map((img, index) => (
-                      <div key={index} className="w-full h-full flex-shrink-0 snap-center relative cursor-zoom-in" onClick={() => setLightboxIndex(index)}>
-                        <img src={img} alt={`img-${index}`} className="w-full h-full object-cover opacity-90" loading="lazy" />
-                        <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 rounded-full text-white text-xs font-bold border border-white/10 flex items-center gap-2">
-                          <ImageIcon size={12} /> <span>{index + 1}/{images.length}</span>
+                      <div
+                        key={index}
+                        className="w-full h-full shrink-0 snap-center relative cursor-zoom-in"
+                        onClick={() => openLightbox(index)}
+                      >
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 rounded-full text-white text-[10px] font-bold border border-white/20 flex items-center gap-1">
+                          <ImageIcon size={12} /> {index + 1}/{images.length}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className={`w-full h-full flex flex-col items-center justify-center ${theme === "dark" ? "text-slate-600" : "text-slate-400"}`}>
-                    <Building2 size={64} strokeWidth={1} />
-                    <span className="text-sm mt-2 font-medium">ไม่มีรูปภาพ</span>
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 flex-col gap-2">
+                    <Building2 size={48} />
+                    <span className="text-xs">ไม่มีรูปภาพ</span>
                   </div>
                 )}
-                 {/* ... (Controls) ... */}
-                 {images.length > 1 && (
+
+                {images.length > 1 && (
                   <>
-                    <button onClick={(e) => { e.stopPropagation(); scroll("left"); }} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hidden md:block"><ChevronLeft size={24} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); scroll("right"); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hidden md:block"><ChevronRight size={24} /></button>
+                    <button
+                      onClick={() => scroll("left")}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    <button
+                      onClick={() => scroll("right")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronRight size={24} />
+                    </button>
                   </>
                 )}
-                <div className="absolute inset-x-0 bottom-0 pt-16 pb-6 px-6 bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
-                  <span className={`inline-block px-2 py-0.5 rounded ${styles.primaryBg} text-white text-[10px] font-bold uppercase mb-2 shadow-sm`}>{location.category}</span>
-                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">{location.title}</h2>
+
+                <div className="absolute bottom-0 inset-x-0 p-5 md:p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none">
+                  <span
+                    className={`px-2.5 py-1 rounded text-[10px] font-bold text-white uppercase mb-1.5 inline-block ${styles.primaryBg}`}
+                  >
+                    {location.category}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow-md">
+                    {location.title}
+                  </h2>
                 </div>
               </div>
 
-              <div className={`flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar ${bgColor}`}>
-                <div className="space-y-6 max-w-3xl mx-auto">
-                  <section>
-                    <h3 className={`text-sm font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${styles.primary}`}><MapPin size={16} /> ข้อมูลสถานที่</h3>
+              {/* Detail Text */}
+              <div className="flex-1 overflow-y-auto p-5 md:p-8 custom-scrollbar">
+                <div className="space-y-8">
+                  <div>
+                    <h3
+                      className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-3 ${styles.primary}`}
+                    >
+                      <MapPin size={18} /> ข้อมูลสถานที่
+                    </h3>
+                    {location.detail ? (
+                      <p
+                        className={`text-sm leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                      >
+                        {location.detail}
+                      </p>
+                    ) : (
+                      <p className="text-sm opacity-50 italic">
+                        ไม่มีรายละเอียดเพิ่มเติม
+                      </p>
+                    )}
+                  </div>
 
-                  </section>
-                  {location.detail && (
-                    <section className={`p-4 border rounded-xl ${subBgColor} ${borderColor}`}>
-                      <h4 className={`text-sm font-bold mb-1 ${headingColor}`}>รายละเอียดเพิ่มเติม</h4>
-                      <p className={`text-sm leading-relaxed ${textColor}`}>{location.detail}</p>
-                    </section>
-                  )}
                   {location.facilities && location.facilities.length > 0 && (
-                    <section>
-                      <h3 className={`text-sm font-bold uppercase tracking-widest mb-3 ${styles.primary}`}>สิ่งอำนวยความสะดวก</h3>
+                    <div>
+                      <h4 className="font-bold mb-3 text-xs opacity-60 uppercase tracking-wider">
+                        สิ่งอำนวยความสะดวก
+                      </h4>
                       <div className="flex flex-wrap gap-2">
                         {location.facilities.map((f, i) => (
-                          <div key={i} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg ${bgColor} ${borderColor}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${styles.primaryBg}`} />
-                            <span className={`text-xs md:text-sm font-medium ${textColor}`}>{f}</span>
-                          </div>
+                          <span
+                            key={i}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${borderCol} ${isDark ? "bg-slate-800" : "bg-slate-50"}`}
+                          >
+                            {f}
+                          </span>
                         ))}
                       </div>
-                    </section>
+                    </div>
                   )}
                 </div>
               </div>
             </motion.div>
 
-            {/* CARD 2: PERSONNEL */}
+            {/* Right Column: Teacher List */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               className={`
-                w-full md:w-[28rem] lg:w-[32rem] ${subBgColor} rounded-[20px] shadow-2xl overflow-hidden flex-col border md:flex order-1 md:order-2 ${borderColor}
-                ${mobileTab === "personnel" ? "flex" : "hidden"}
+                w-full md:w-[380px] lg:w-[420px] flex-col rounded-3xl overflow-hidden shadow-2xl
+                ${mobileTab === "personnel" ? "flex" : "hidden md:flex"}
               `}
             >
-              {/* Header */}
-              <div className={`${bgColor} border-b ${borderColor} z-30 sticky top-0`}>
-                <div className="p-4 md:p-6 pb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 ${styles.primaryBg} text-white rounded-lg shadow-sm`}>
-                      <Users size={20} />
-                    </div>
-                    <div>
-                      <h3 className={`text-lg font-extrabold ${headingColor}`}>บุคลากร</h3>
-                      <p className="text-xs text-slate-500">ประจำอาคารนี้</p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${theme === "dark" ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
-                    {filteredTeachers.length} ท่าน
-                  </span>
-                </div>
-
-                <div className="px-4 md:px-6 pb-4 relative">
-                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full flex items-center justify-between px-4 py-2.5 border rounded-xl transition-colors text-left ${bgColor} ${borderColor} hover:${subBgColor}`}>
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <Filter size={14} className="text-slate-400" />
-                      <span className={`text-sm font-bold truncate ${styles.textHeading}`}>{selectedDept === "ทั้งหมด" ? "แสดงทุกแผนก" : selectedDept}</span>
-                    </div>
-                    <ChevronDown size={16} className={`text-slate-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  {isDropdownOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
-                      <div className={`absolute left-6 right-6 top-[calc(100%-5px)] mt-2 rounded-xl shadow-xl border overflow-hidden z-20 max-h-52 overflow-y-auto custom-scrollbar ${bgColor} ${borderColor}`}>
-                        {departments.map((dept, index) => {
-                          const count = dept === "ทั้งหมด" ? allTeachers.length : allTeachers.filter((t) => t.department === dept).length;
-                          const isSelected = selectedDept === dept;
-                          return (
-                            <button key={index} onClick={() => { setSelectedDept(dept); setIsDropdownOpen(false); }}
-                              className={`w-full text-left px-4 py-3 text-sm font-bold flex items-center justify-between border-b last:border-0 ${borderColor} ${isSelected ? `${theme === "dark" ? "bg-slate-800" : "bg-slate-50"} ${styles.primary}` : `${textColor} hover:${subBgColor}`}`}>
-                              <span>{dept === "ทั้งหมด" ? "แสดงทั้งหมด" : dept}</span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSelected ? `${styles.primaryBg} text-white` : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>{count}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* List */}
-              <div className={`flex-1 overflow-y-auto p-4 custom-scrollbar ${subBgColor}`}>
-                {filteredTeachers.length > 0 ? (
-                  <div className="space-y-3">
-                    {filteredTeachers.map((t) => (
-                      // ✅ 3. เปลี่ยนจาก Link เป็น div ที่มี onClick
-                      <div
-                        key={t.id}
-                        onClick={() => setSelectedTeacherId(t.id)}
-                        className={`block group cursor-pointer`}
-                      >
-                        <div className={`${bgColor} p-3 rounded-xl border ${borderColor} shadow-sm active:scale-[0.98] transition-transform flex items-center gap-4 hover:shadow-md`}>
-                          <div className="relative shrink-0">
-                            <img src={`https://teacher.pbntc.site/${t.id}.jpg`} alt={t.name} className={`w-12 h-12 rounded-full object-cover ${borderColor} border`} loading="lazy"
-                              onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=User"; }} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className={`font-bold text-sm truncate ${headingColor} group-hover:${styles.primary} transition-colors`}>{t.name}</h4>
-                            <p className="text-xs text-slate-500 font-medium truncate">{t.department}</p>
-                            <p className={`text-[10px] ${styles.primary} font-bold truncate mt-0.5`}>{t.position}</p>
-                          </div>
-                          <ChevronRight size={16} className="text-slate-400" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 opacity-60">
-                    <Filter size={24} className="mb-2" />
-                    <p className="text-sm font-medium">ไม่พบข้อมูล</p>
-                  </div>
-                )}
-              </div>
+              <TeacherList
+                teachers={allTeachers}
+                onSelectTeacher={setSelectedTeacherId}
+              />
             </motion.div>
           </div>
         </div>
       </div>
 
-      {/* ✅ 4. แสดง Overlay หากมี teacherId ถูกเลือก */}
+      {/* --- Detail Popup --- */}
       <AnimatePresence>
         {selectedTeacherId && (
-          <TeacherDetailOverlay 
-            teacherId={selectedTeacherId} 
-            onClose={() => setSelectedTeacherId(null)} 
+          <TeacherDetailOverlay
+            teacherId={selectedTeacherId}
+            onClose={() => setSelectedTeacherId(null)}
           />
         )}
       </AnimatePresence>
 
-      {/* Lightbox */}
-      {lightboxIndex !== null && (
-        <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in" onClick={closeLightbox}>
-           <button onClick={closeLightbox} className="absolute top-6 right-6 p-3 bg-white/10 text-white rounded-full z-50"><X size={24} /></button>
-           <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            <img src={images[lightboxIndex]} alt="Fullscreen" className="max-w-full max-h-[90vh] object-contain shadow-2xl rounded-lg select-none" />
-            {images.length > 1 && (
-              <>
-                <button onClick={showPrevImage} className="absolute left-2 p-3 bg-white/10 text-white rounded-full"><ChevronLeft size={24} /></button>
-                <button onClick={showNextImage} className="absolute right-2 p-3 bg-white/10 text-white rounded-full"><ChevronRight size={24} /></button>
-              </>
-            )}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 text-white text-sm font-bold rounded-full">{lightboxIndex + 1} / {images.length}</div>
-          </div>
-        </div>
-      )}
+      {/* --- Lightbox --- */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4"
+            onClick={closeLightbox}
+          >
+            <button
+              onClick={closeLightbox}
+              className="absolute top-6 right-6 p-3 bg-white/10 text-white rounded-full z-[1000] hover:bg-white/20"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+              <img
+                src={images[lightboxIndex]}
+                alt="Fullscreen"
+                className="max-w-full max-h-[90vh] object-contain shadow-2xl rounded-lg select-none pointer-events-auto"
+              />
+
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={showPrevImage}
+                    className="absolute left-2 md:left-8 p-3 bg-white/10 text-white rounded-full hover:bg-white/20 pointer-events-auto"
+                  >
+                    <ChevronLeft size={32} />
+                  </button>
+                  <button
+                    onClick={showNextImage}
+                    className="absolute right-2 md:right-8 p-3 bg-white/10 text-white rounded-full hover:bg-white/20 pointer-events-auto"
+                  >
+                    <ChevronRight size={32} />
+                  </button>
+                </>
+              )}
+
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 text-white text-sm font-bold rounded-full border border-white/10">
+                {lightboxIndex + 1} / {images.length}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 });

@@ -12,17 +12,21 @@ const Home: React.FC = () => {
   const { styles, theme } = useTheme();
 
   return (
-    <div
-      className={`w-full min-h-screen py-16 md:py-24 px-4 md:px-8 overflow-y-auto transition-colors duration-300 ${styles.bgBody}`}
-    >
+    <div className="w-full min-h-screen pb-16 md:pb-24 px-4 md:px-8">
       <div className="max-w-6xl mx-auto flex flex-col items-center">
-        {/* Hero Section */}
-        <section
-          className={`relative w-full rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br ${styles.bgGradient} p-8 md:p-20 text-center text-white mb-20`}
-        >
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+        {/* --- Hero Section --- */}
+        <section className="relative w-full rounded-3xl overflow-hidden shadow-2xl p-8 md:p-20 text-center text-white mb-20">
+          {/* ✅ 1. ใส่รูปภาพพื้นหลัง (Background Image) */}
+          <img
+            src="/pai.jpeg" // เปลี่ยน URL รูปตรงนี้
+            alt="Campus"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
 
+          {/* ✅ 2. ใส่ Overlay สีดำ (เพื่อให้ตัวหนังสืออ่านออก) */}
+          <div className="absolute inset-0 bg-black/60"></div>
+
+          {/* Content (ต้องมี relative z-10 เพื่อให้อยู่บนรูป) */}
           <div className="relative z-10 max-w-4xl mx-auto">
             <span className="inline-block py-1 px-4 rounded-full bg-white/20 border border-white/30 text-sm font-bold tracking-wider mb-6 uppercase backdrop-blur-sm">
               Welcome to PTC Digital Campus
@@ -46,7 +50,7 @@ const Home: React.FC = () => {
               </Link>
               <Link
                 to="/contact"
-                className="px-8 py-4 bg-black/20 text-white font-bold rounded-xl border border-white/30 hover:bg-black/30 transition-all flex items-center gap-2 backdrop-blur-sm"
+                className="px-8 py-4 bg-black/40 text-white font-bold rounded-xl border border-white/30 hover:bg-black/50 transition-all flex items-center gap-2 backdrop-blur-sm"
               >
                 <FaInfoCircle /> ติดต่อสอบถาม
               </Link>

@@ -1,8 +1,5 @@
 import React, { useEffect } from "react";
-import { 
-  ArrowLeft, Phone, Building2, Briefcase, 
-  UserCircle2, GraduationCap, X 
-} from "lucide-react";
+import { Phone, Building2, X, CheckCircle2, Briefcase } from "lucide-react";
 import { teachersData } from "../../data/teachers";
 import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
@@ -15,8 +12,8 @@ interface Props {
 const TeacherDetailOverlay: React.FC<Props> = ({ teacherId, onClose }) => {
   const { styles, theme } = useTheme();
   const teacher = teachersData[teacherId];
+  const isDark = theme === "dark";
 
-  // ล็อคการเลื่อนหน้าจอหลัก
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -26,150 +23,158 @@ const TeacherDetailOverlay: React.FC<Props> = ({ teacherId, onClose }) => {
 
   if (!teacher) return null;
 
-  const dynamicImageUrl = `https://teacher.pbntc.site/${teacher.id}.jpg`;
-  
-  // Helper Colors
-  const isDark = theme === "dark";
-  const bgBase = isDark ? "bg-slate-950" : "bg-slate-50";
-  const contentBg = isDark ? "bg-slate-900" : "bg-white";
-  const borderColor = isDark ? "border-slate-800" : "border-slate-200";
-  const textMuted = isDark ? "text-slate-400" : "text-slate-500";
+  // Colors
+  const bgCard = isDark ? "bg-slate-900" : "bg-white";
+  const textMain = isDark ? "text-slate-100" : "text-slate-800";
+  const textSub = isDark ? "text-slate-400" : "text-slate-500";
+  const itemBg = isDark ? "bg-slate-800" : "bg-slate-50";
+  const borderCol = isDark ? "border-slate-800" : "border-slate-100";
+  const closeBtnColor = isDark
+    ? "text-slate-400 hover:text-white hover:bg-slate-800"
+    : "text-slate-400 hover:text-slate-900 hover:bg-slate-100";
 
   return (
-    <motion.div 
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className={`fixed inset-0 z-[300] overflow-y-auto ${bgBase} font-sans`}
-    >
-      {/* --- Sticky Header --- */}
-      <div className={`sticky top-0 z-50 flex items-center justify-between px-4 py-3 backdrop-blur-xl border-b ${isDark ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"}`}>
-        <button 
+    // Z-Index สูงสุดเพื่อให้แน่ใจว่าอยู่บนสุด
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop: สีดำโปร่งแสงธรรมดา (ไม่มี Blur ตามสั่ง) */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/80"
+        onClick={onClose}
+      />
+
+      {/* Main Card */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className={`relative w-full max-w-sm rounded-[24px] overflow-hidden shadow-2xl ${bgCard} flex flex-col max-h-[85vh]`}
+      >
+        {/* ปุ่มปิด (X) อยู่มุมขวาบน แบบเรียบง่าย ไม่บังรูป */}
+        <button
           onClick={onClose}
-          className={`p-2 rounded-full transition-all ${isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-slate-100 text-slate-600"}`}
+          className={`absolute top-4 right-4 z-50 p-2 rounded-full transition-colors ${closeBtnColor}`}
         >
-          <ArrowLeft size={24} />
+          <X size={24} strokeWidth={2.5} />
         </button>
-        <span className={`font-bold text-sm uppercase tracking-wider ${textMuted}`}>Teacher Profile</span>
-        <div className="w-10" /> {/* Spacer */}
-      </div>
 
-      {/* --- Hero Section with Cover --- */}
-      <div className="relative">
-        {/* Cover Background (Abstract) */}
-        <div className={`h-48 md:h-64 w-full overflow-hidden relative bg-gradient-to-r ${styles.bgGradient}`}>
-           <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20"></div>
-        </div>
-
-        {/* Profile Container */}
-        <div className="px-6 md:px-10 -mt-20 md:-mt-24 relative z-10 flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-end">
-           {/* Profile Image */}
-           <div className={`p-1.5 rounded-[2rem] shadow-2xl ${contentBg}`}>
-              <img 
-                src={dynamicImageUrl} 
-                alt={teacher.name}
-                className="w-40 h-52 md:w-56 md:h-72 object-cover rounded-[1.7rem] bg-slate-200"
-                onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/300x400?text=User"; }}
-              />
-           </div>
-
-           {/* Name & Title (Desktop View) */}
-           <div className="hidden md:block pb-6 space-y-2">
-              <h1 className={`text-5xl font-black tracking-tight ${styles.textHeading}`}>{teacher.name}</h1>
-              <div className="flex items-center gap-3">
-                 <span className={`px-4 py-1.5 rounded-full text-white text-sm font-bold shadow-md ${styles.primaryBg}`}>
-                    {teacher.position}
-                 </span>
-                 <span className={`text-lg ${textMuted}`}>แผนก{teacher.department}</span>
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-12 pb-8">
+          {/* --- Profile Section (เอาสีด้านบนออกแล้ว จัดกึ่งกลางเน้นๆ) --- */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative group">
+              {/* กรอบรูป */}
+              <div
+                className={`p-1.5 rounded-[24px] ${bgCard} border-2 ${borderCol} shadow-lg`}
+              >
+                <img
+                  src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
+                  alt={teacher.name}
+                  className="w-40 h-52 object-cover rounded-[18px] bg-slate-200"
+                  onError={(e) =>
+                    (e.currentTarget.src = `https://ui-avatars.com/api/?name=${teacher.name}&size=256&background=random`)
+                  }
+                />
               </div>
-           </div>
+
+              {/* Status Badge */}
+              <div
+                className={`absolute -bottom-3 left-1/2 -translate-x-1/2 ${isDark ? "bg-emerald-600" : "bg-green-600"} text-white text-[11px] font-bold px-3 py-1 rounded-full border-[4px] ${bgCard} flex items-center gap-1 shadow-sm whitespace-nowrap`}
+              >
+                <CheckCircle2 size={12} strokeWidth={3} /> Active
+              </div>
+            </div>
+
+            {/* Name & Position */}
+            <div className="text-center mt-6">
+              <h2
+                className={`text-2xl font-black ${textMain} leading-tight mb-2`}
+              >
+                {teacher.name}
+              </h2>
+              <span
+                className={`inline-block px-3 py-1 rounded-lg text-xs font-bold ${styles.bgBody} ${styles.textBody}`}
+              >
+                {teacher.position}
+              </span>
+            </div>
+          </div>
+
+          {/* --- Details List --- */}
+          <div className="space-y-3">
+            {/* Department */}
+            <div
+              className={`flex items-center gap-4 p-4 rounded-2xl border ${borderCol} ${itemBg}`}
+            >
+              <div
+                className={`p-2.5 rounded-xl bg-white dark:bg-slate-700 shadow-sm shrink-0 ${styles.primary}`}
+              >
+                <Building2 size={20} />
+              </div>
+              <div>
+                <p
+                  className={`text-[10px] font-bold uppercase tracking-wider opacity-60 mb-0.5 ${textSub}`}
+                >
+                  แผนกวิชา
+                </p>
+                <p className={`text-sm font-bold ${textMain}`}>
+                  {teacher.department}
+                </p>
+              </div>
+            </div>
+
+            {/* Affiliation */}
+            <div
+              className={`flex items-center gap-4 p-4 rounded-2xl border ${borderCol} ${itemBg}`}
+            >
+              <div
+                className={`p-2.5 rounded-xl bg-white dark:bg-slate-700 shadow-sm shrink-0 ${styles.primary}`}
+              >
+                <Briefcase size={20} />
+              </div>
+              <div>
+                <p
+                  className={`text-[10px] font-bold uppercase tracking-wider opacity-60 mb-0.5 ${textSub}`}
+                >
+                  สังกัด
+                </p>
+                <p className={`text-sm font-bold ${textMain}`}>
+                  วิทยาลัยเทคนิคเพชรบูรณ์
+                </p>
+              </div>
+            </div>
+
+            {/* Phone (ปุ่มโทรแบบเต็ม) */}
+            <div className="mt-2">
+              <p
+                className={`text-[10px] font-bold uppercase tracking-wider opacity-60 mb-2 ml-1 ${textSub}`}
+              >
+                ติดต่อ
+              </p>
+              {teacher.phone ? (
+                <a
+                  href={`tel:${teacher.phone}`}
+                  className={`flex items-center justify-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r ${styles.bgGradient} text-white shadow-lg active:scale-[0.98] transition-all`}
+                >
+                  <Phone size={20} className="fill-current" />
+                  <span className="font-bold text-lg">{teacher.phone}</span>
+                </a>
+              ) : (
+                <div
+                  className={`flex items-center justify-center gap-2 w-full p-4 rounded-2xl border border-dashed ${borderCol} opacity-50`}
+                >
+                  <Phone size={18} />
+                  <span className="text-sm">ไม่ระบุเบอร์โทร</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* --- Content Body --- */}
-      <div className="px-6 md:px-10 py-8 max-w-5xl mx-auto space-y-8">
-         
-         {/* Name (Mobile View) */}
-         <div className="md:hidden text-center space-y-3">
-            <h1 className={`text-3xl font-black ${styles.textHeading}`}>{teacher.name}</h1>
-            <div className="flex flex-wrap justify-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-white text-xs font-bold shadow-sm ${styles.primaryBg}`}>
-                  {teacher.position}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${borderColor} ${textMuted}`}>
-                  แผนก{teacher.department}
-                </span>
-            </div>
-         </div>
-
-         {/* Info Cards Grid */}
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* 1. Contact Info */}
-            <div className={`p-6 rounded-3xl border ${contentBg} ${borderColor} shadow-sm`}>
-               <h3 className={`text-sm font-bold uppercase tracking-widest mb-6 flex items-center gap-2 ${styles.primary}`}>
-                  <Phone size={18}/> ข้อมูลการติดต่อ
-               </h3>
-               
-               {teacher.phone ? (
-                 <a href={`tel:${teacher.phone}`} className={`flex items-center gap-5 p-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] ${isDark ? "bg-slate-800/50 hover:bg-slate-800" : "bg-slate-50 hover:bg-slate-100"}`}>
-                    <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
-                       <Phone size={24} />
-                    </div>
-                    <div>
-                       <p className={`text-xs font-bold uppercase mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>เบอร์โทรศัพท์</p>
-                       <p className={`text-2xl font-black tracking-tight ${styles.textHeading}`}>{teacher.phone}</p>
-                    </div>
-                 </a>
-               ) : (
-                 <div className={`flex items-center gap-4 p-4 rounded-2xl opacity-60 border border-dashed ${borderColor}`}>
-                    <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
-                       <Phone size={20} />
-                    </div>
-                    <span className={styles.textBody}>ไม่มีเบอร์โทรศัพท์</span>
-                 </div>
-               )}
-            </div>
-
-            {/* 2. Professional Info */}
-            <div className={`p-6 rounded-3xl border ${contentBg} ${borderColor} shadow-sm`}>
-               <h3 className={`text-sm font-bold uppercase tracking-widest mb-6 flex items-center gap-2 ${styles.primary}`}>
-                  <Briefcase size={18}/> ข้อมูลสังกัด
-               </h3>
-               
-               <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                     <div className={`p-2.5 rounded-xl ${isDark ? "bg-slate-800" : "bg-slate-100"} ${styles.primary}`}>
-                        <Building2 size={20} />
-                     </div>
-                     <div>
-                        <p className={`text-xs font-bold uppercase ${textMuted}`}>แผนกวิชา</p>
-                        <p className={`text-lg font-bold ${styles.textHeading}`}>{teacher.department}</p>
-                     </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                     <div className={`p-2.5 rounded-xl ${isDark ? "bg-slate-800" : "bg-slate-100"} ${styles.primary}`}>
-                        <UserCircle2 size={20} />
-                     </div>
-                     <div>
-                        <p className={`text-xs font-bold uppercase ${textMuted}`}>สถานะบุคลากร</p>
-                        <p className={`text-lg font-bold ${styles.textHeading}`}>ครูประจำการ / เจ้าหน้าที่</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-         </div>
-
-         {/* Footer / Quote */}
-         <div className="text-center py-10 opacity-60">
-            <GraduationCap size={40} className={`mx-auto mb-3 ${textMuted}`} />
-            <p className={`text-sm ${textMuted}`}>วิทยาลัยเทคนิคเพชรบูรณ์</p>
-         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
