@@ -1,5 +1,5 @@
 // src/components/layouts/Footer.tsx
-import { memo } from "react";
+import { memo, type ReactNode } from "react"; // ✅ เพิ่ม import ReactNode
 import { Link } from "react-router-dom";
 import {
   FaFacebook,
@@ -19,7 +19,7 @@ function Footer() {
   const borderClass = isDark ? "border-slate-800" : "border-slate-100";
   const bgClass = isDark ? "bg-slate-950" : "bg-white";
   const textSub = isDark ? "text-slate-500" : "text-slate-400";
-  const textMain = isDark ? "text-slate-300" : "text-slate-600";
+  // ❌ ลบ textMain ออกเพราะไม่ได้ใช้ (แก้ error TS6133)
   const hoverColor = isDark ? "hover:text-blue-400" : "hover:text-violet-600";
 
   return (
@@ -130,7 +130,7 @@ function Footer() {
   );
 }
 
-// --- Helper Components เพื่อความสะอาดของโค้ด ---
+// --- Helper Components ---
 
 const SocialLink = ({ href, icon }: { href: string; icon: ReactNode }) => {
   const { theme } = useTheme();
