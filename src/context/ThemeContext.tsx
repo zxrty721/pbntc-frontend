@@ -5,16 +5,17 @@ import { type ThemeType, THEMES } from "../config/theme";
 interface ThemeContextType {
     theme: ThemeType;
     toggleTheme: () => void;
-    styles: (typeof THEMES)["purple"];
+    styles: typeof THEMES["light"]; // ใช้ Type ของ Light เป็นแม่แบบ
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    const [theme, setTheme] = useState<ThemeType>("purple"); // เริ่มต้นสีม่วง
+    // เริ่มต้นที่ 'light'
+    const [theme, setTheme] = useState<ThemeType>("light");
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === "purple" ? "red" : "purple"));
+        setTheme((prev) => (prev === "light" ? "dark" : "light"));
     };
 
     return (
@@ -26,7 +27,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => {
     const context = useContext(ThemeContext);
     if (!context)

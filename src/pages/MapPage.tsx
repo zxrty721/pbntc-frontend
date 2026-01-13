@@ -61,7 +61,7 @@ const MapPage: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // --- Logic: Search & Filter ---
+  // --- Logic: Search & Filter (UPDATED 🚀) ---
   const filteredLocations = useMemo(() => {
     if (!searchTerm) return [];
     const lowerTerm = searchTerm.toLowerCase();
@@ -76,6 +76,7 @@ const MapPage: React.FC = () => {
       if (matchBasic) return true;
 
       // 2. ค้นหาจากข้อมูลครู (ชื่อ และ แผนก) โดยดูจาก locationId
+      // ดึงครูทั้งหมดที่อยู่ตึกนี้
       const teachersInLoc = Object.values(teachersData).filter(
         (t) => t.locationId === loc.id,
       );
@@ -135,7 +136,7 @@ const MapPage: React.FC = () => {
       if (mode === "developer") return;
 
       setSelectedLocation(loc);
-      setSearchTerm(""); // เคลียร์คำค้นหาเมื่อเลือกสถานที่แล้ว
+      setSearchTerm("");
 
       if (mode === "interactive" && transformRef.current) {
         transformRef.current.zoomToElement(
@@ -203,7 +204,6 @@ const MapPage: React.FC = () => {
     return locations.map((loc) => {
       const isMatch = filteredLocations.some((f) => f.id === loc.id);
       const isSelected = selectedLocation?.id === loc.id;
-      // ถ้ามีการค้นหา ให้ Dim ตัวที่ไม่เกี่ยว, ถ้ามีการเลือกสถานที่ ให้ Dim ตัวอื่น
       const isDimmed =
         (searchTerm && !isMatch) || (selectedLocation && !isSelected);
 

@@ -9,15 +9,16 @@ import {
 import { Link } from "react-router-dom";
 
 const Home: React.FC = () => {
-  const { styles } = useTheme();
+  const { styles, theme } = useTheme();
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 py-16 md:py-24 px-4 md:px-8 overflow-y-auto">
+    <div
+      className={`w-full min-h-screen py-16 md:py-24 px-4 md:px-8 overflow-y-auto transition-colors duration-300 ${styles.bgBody}`}
+    >
       <div className="max-w-6xl mx-auto flex flex-col items-center">
-
         {/* Hero Section */}
         <section
-          className={`relative w-full rounded-3xl overflow-hidden shadow-2xl bg-linear-to-br ${styles.bgGradient} p-8 md:p-20 text-center text-white mb-20`}
+          className={`relative w-full rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br ${styles.bgGradient} p-8 md:p-20 text-center text-white mb-20`}
         >
           <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
@@ -29,7 +30,7 @@ const Home: React.FC = () => {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight drop-shadow-md">
               สำรวจโลกใบใหม่แห่ง
               <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-yellow-200 to-white">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-white">
                 การนำทางอัจฉริยะ
               </span>
             </h1>
@@ -56,12 +57,10 @@ const Home: React.FC = () => {
         {/* Features Grid */}
         <section className="w-full mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-800 mb-4">
+            <h2 className={`text-3xl font-bold mb-4 ${styles.textHeading}`}>
               ฟีเจอร์ที่น่าสนใจ
             </h2>
-            <p className="text-slate-500">
-              ระบบของเราถูกออกแบบมาเพื่อทุกคน
-            </p>
+            <p className={styles.textBody}>ระบบของเราถูกออกแบบมาเพื่อทุกคน</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -84,17 +83,17 @@ const Home: React.FC = () => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-2 group"
+                className={`p-8 rounded-2xl transition-all hover:-translate-y-2 group ${styles.card}`}
               >
                 <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-linear-to-br ${styles.bgGradient} text-white shadow-md group-hover:scale-110 transition-transform`}
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-gradient-to-br ${styles.bgGradient} text-white shadow-md group-hover:scale-110 transition-transform`}
                 >
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">
+                <h3 className={`text-xl font-bold mb-3 ${styles.textHeading}`}>
                   {item.title}
                 </h3>
-                <p className="text-slate-500 leading-relaxed">
+                <p className={`leading-relaxed ${styles.textBody}`}>
                   {item.desc}
                 </p>
               </div>
@@ -102,9 +101,13 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* Footer Note (Standardized) */}
-        <div className="py-8 text-center border-t border-slate-200 w-full">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white shadow-sm">
+        {/* Footer Note */}
+        <div
+          className={`py-8 text-center border-t w-full ${theme === "dark" ? "border-slate-800" : "border-slate-200"}`}
+        >
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm ${theme === "dark" ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}
+          >
             <FaGraduationCap className="w-4 h-4 text-slate-400" />
             <span className="text-xs text-slate-500 font-medium">
               Educational Project • จัดทำเพื่อการศึกษา

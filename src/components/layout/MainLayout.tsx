@@ -1,16 +1,19 @@
 import { type ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useTheme } from "../../context/ThemeContext";
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const { styles } = useTheme();
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-600 font-sans selection:bg-indigo-500/30">
+    // ใช้ styles.bgBody เพื่อเปลี่ยนสีพื้นหลัง (ขาว <-> ดำ)
+    <div className={`flex min-h-screen flex-col font-sans transition-colors duration-300 ${styles.bgBody} ${styles.textBody}`}>
       <Header />
-      {/* main มี grow flex-col เต็มพื้นที่ */}
       <main className="grow flex flex-col w-full relative overflow-hidden">
         {children}
       </main>
