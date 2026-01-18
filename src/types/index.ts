@@ -22,7 +22,6 @@ export interface CategoryStyle {
 }
 
 export interface Teacher {
-  id: number;
   name: string;
   department: string; // หรือจะใช้ DepartmentName ก็ได้
   position: string;

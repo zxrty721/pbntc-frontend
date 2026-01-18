@@ -1,12 +1,17 @@
 import React, { useState, useMemo } from "react";
 import { Users, Filter, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-// ❌ ลบ import teachersData ออก เพราะไม่ได้ใช้ (เรารับผ่าน props แทน)
 import type { Teacher } from "../../types";
 
+// เราสร้าง Interface นี้ขึ้นมาเพื่อให้มั่นใจว่า Object ที่ส่งเข้ามา
+// จะต้องมี property "id" ที่เป็น string (เช่น "100", "U") ติดมาด้วย
+export interface TeacherWithId extends Teacher {
+  id: string;
+}
+
 interface TeacherListProps {
-  teachers: Teacher[];
-  onSelectTeacher: (id: number) => void;
+  teachers: TeacherWithId[]; // รับ array ที่มี id เป็น string
+  onSelectTeacher: (id: string) => void; // ส่ง id เป็น string กลับไปเมื่อคลิก
 }
 
 const TeacherList: React.FC<TeacherListProps> = ({
@@ -57,7 +62,9 @@ const TeacherList: React.FC<TeacherListProps> = ({
             </div>
           </div>
           <div
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${borderCol} ${isDark ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}
+            className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${borderCol} ${
+              isDark ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"
+            }`}
           >
             {filteredTeachers.length}
           </div>
@@ -67,7 +74,9 @@ const TeacherList: React.FC<TeacherListProps> = ({
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className={`w-full flex items-center justify-between px-4 py-2.5 border rounded-xl text-xs font-bold transition-all ${borderCol} ${isDark ? "bg-slate-800/50 hover:bg-slate-800" : "bg-slate-50 hover:bg-slate-100"}`}
+            className={`w-full flex items-center justify-between px-4 py-2.5 border rounded-xl text-xs font-bold transition-all ${borderCol} ${
+              isDark ? "bg-slate-800/50 hover:bg-slate-800" : "bg-slate-50 hover:bg-slate-100"
+            }`}
           >
             <span className="flex items-center gap-2 truncate opacity-80">
               <Filter size={14} />
@@ -95,7 +104,9 @@ const TeacherList: React.FC<TeacherListProps> = ({
                       setSelectedDept(dept);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-3 text-xs font-bold border-b last:border-0 hover:opacity-70 transition-opacity ${borderCol} ${selectedDept === dept ? styles.primary : isDark ? "text-slate-300" : "text-slate-600"}`}
+                    className={`w-full text-left px-4 py-3 text-xs font-bold border-b last:border-0 hover:opacity-70 transition-opacity ${borderCol} ${
+                      selectedDept === dept ? styles.primary : isDark ? "text-slate-300" : "text-slate-600"
+                    }`}
                   >
                     {dept}
                   </button>
@@ -113,9 +124,11 @@ const TeacherList: React.FC<TeacherListProps> = ({
         {filteredTeachers.length > 0 ? (
           filteredTeachers.map((t) => (
             <div
-              key={t.id}
-              onClick={() => onSelectTeacher(t.id)}
-              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md group ${borderCol} ${isDark ? "bg-slate-900" : "bg-white"}`}
+              key={t.id} // ใช้ string id เป็น key
+              onClick={() => onSelectTeacher(t.id)} // ส่ง string id กลับไป
+              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md group ${borderCol} ${
+                isDark ? "bg-slate-900" : "bg-white"
+              }`}
             >
               {/* Avatar Small */}
               <div className="relative shrink-0">
