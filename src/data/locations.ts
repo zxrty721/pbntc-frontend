@@ -275,7 +275,7 @@ export const locations: MapLocation[] = [
     category: "academic",
     detail: "อาคารสำหรับเรียนรู้และปฏิบัติของแผนกช่างเชื่อมโลหะ",
    facilities: [ "ห้องสำหรับเรียน","ห้องสำหรับปฏิบัติ", "เครื่องตัดไฟฟ้า","เครื่องตัดแก๊ส","เครื่องเจียร","โต๊ะวัดและประกอบชิ้นงาน"],
-    images: ["Q.jpg"],
+    images: ["H.jpg"],
   },
    {
     id: 27,
@@ -296,5 +296,15 @@ export const locations: MapLocation[] = [
     detail: "ใช้สำหรับเข้าพบผู้อำนวยการ",
    facilities: [ "ห้องผู้อำนวยการ"],
     images: ["U.jpg"],
+  },
+   {
+    id: 29,
+    title: "อศจ.",
+    label: "U",
+    x: 27.68, y: 56.45,
+    category: "academic",
+    detail: "การเรียนการสอน",
+   facilities: [ "อุปกรณ์การเรียนการสอย"],
+    images: ["O.jpg"],
   },
 ];
