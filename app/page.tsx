@@ -16,7 +16,7 @@ export default function Home() {
 
           {/* ✅ Background Image: ใช้ไฟล์ pai.jpeg */}
           {/* ⚠️ อย่าลืม: นำไฟล์รูปไปวางในโฟลเดอร์ public และตั้งชื่อว่า pai.jpeg */}
-          <div className="absolute inset-0 bg-[url('/pai.jpeg')] bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105"></div>
+          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105" style={{ backgroundImage: "url('/pai.jpeg')" }}></div>
 
           {/* Overlay Gradient (ปรับให้เข้มขึ้นเพื่อให้ตัวหนังสืออ่านง่าย) */}
           <div className="absolute inset-0 bg-linear-to-r from-[#2e1065]/90 via-slate-900/80 to-transparent"></div>
