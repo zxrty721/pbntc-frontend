@@ -1,0 +1,10 @@
+{
+  "/(pages)/about/page": "/about",
+  "/(pages)/contact/page": "/contact",
+  "/(pages)/map/[id]/page": "/map/[id]",
+  "/(pages)/map/page": "/map",
+  "/(pages)/teachers/page": "/teachers",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/page": "/"
+}

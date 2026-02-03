@@ -1,0 +1,10 @@
+{
+  "/(pages)/about/page": "app/(pages)/about/page.js",
+  "/(pages)/contact/page": "app/(pages)/contact/page.js",
+  "/(pages)/map/[id]/page": "app/(pages)/map/[id]/page.js",
+  "/(pages)/map/page": "app/(pages)/map/page.js",
+  "/(pages)/teachers/page": "app/(pages)/teachers/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js"
+}
