@@ -1,95 +1,151 @@
 "use client";
 
 import React from "react";
-import { Users, Code, Lightbulb, Facebook, GraduationCap } from "lucide-react";
+import { Facebook, Code, Cpu, Database, GraduationCap, Globe, Palette, Users } from "lucide-react";
 
 export default function AboutPage() {
     const teamMembers = [
-        { name: "นายเอกภพ", role: "Fullstack Developer", img: "ice", facebook: "https://www.facebook.com/share/19NegsSmh2/" },
-        { name: "นายนราเทพ", role: "UX/UI Designer", img: "tar", facebook: "https://www.facebook.com/share/1Mj5r6Y1zs/" },
-        { name: "นายวัชรสิทธิ์", role: "Project Advisor", img: "khun", facebook: "https://www.facebook.com/share/17yJpL7Ptu/" },
+        {
+            name: "นายเอกภพ",
+            role: "หัวหน้าทีมพัฒนา (Lead Developer)",
+            desc: "รับผิดชอบด้านโครงสร้างระบบ (System Architecture) และการเขียนโปรแกรมทั้งส่วนหน้าและหลังบ้าน",
+            img: "ice",
+            facebook: "https://www.facebook.com/share/19NegsSmh2/"
+        },
+        {
+            name: "นายนราเทพ",
+            role: "หัวหน้าฝ่ายออกแบบ (Lead UX/UI)",
+            desc: "รับผิดชอบด้านการออกแบบประสบการณ์ผู้ใช้งาน (UX) และส่วนติดต่อผู้ใช้งาน (UI) ให้สวยงามและใช้งานง่าย",
+            img: "tar",
+            facebook: "https://www.facebook.com/share/1Mj5r6Y1zs/"
+        },
+        {
+            name: "นายวัชรสิทธิ์",
+            role: "ที่ปรึกษาโครงการ (Project Advisor)",
+            desc: "ให้คำปรึกษาและตรวจสอบความถูกต้องของระบบ เพื่อให้โครงการดำเนินไปตามวัตถุประสงค์",
+            img: "khun",
+            facebook: "https://www.facebook.com/share/17yJpL7Ptu/"
+        },
+    ];
+
+    const techStack = [
+        { name: "Next.js & React", category: "Core Framework", icon: Globe, color: "text-sky-600", bg: "bg-sky-50 dark:bg-sky-900/20" },
+        { name: "Tailwind CSS", category: "UI & Styling", icon: Palette, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
+        { name: "TypeScript", category: "Programming Language", icon: Code, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
+        { name: "JSON Static Data", category: "Data Structure", icon: Database, color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-900/20" },
     ];
 
     return (
-        <div className="w-full min-h-screen pb-24 px-4 md:px-8 transition-colors duration-300">
-            <div className="max-w-6xl mx-auto pt-10">
+        <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans anim-enter">
 
-                {/* Header (Animation) */}
-                <div className="text-center mb-16 space-y-4 anim-enter">
-                    <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm">
-                        About Project
+            {/* 1. ส่วนหัว (Header) - ใส่รูปภาพพื้นหลัง */}
+            <div className="relative w-full h-100 bg-slate-900 flex items-center justify-center overflow-hidden border-b border-amber-500/20">
+                {/* ✅ Background Image */}
+                <div className="absolute inset-0">
+                    <img
+                        src="https://img.pbntc.site/tar.webp" // ใส่ URL รูปตึกสวยๆ ของวิทยาลัยที่นี่
+                        alt="Background"
+                        className="w-full h-full object-cover opacity-40"
+                        onError={(e) => e.currentTarget.style.display = 'none'} // ถ้าไม่มีรูปให้ซ่อน
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-900/60 to-slate-900/30"></div>
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 max-w-4xl mx-auto text-center px-6 mt-16">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs font-bold tracking-widest text-amber-400 uppercase bg-amber-950/50 border border-amber-500/50 rounded-full shadow-lg backdrop-blur-none">
+                        <Users size={12} /> Official Project Team
                     </span>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white">
-                        เกี่ยวกับ{" "}
-                        <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400 animate-pulse">
-                            โครงการของเรา
-                        </span>
+                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
+                        คณะผู้จัดทำโครงการ
                     </h1>
-                    <p className="text-lg max-w-2xl mx-auto leading-relaxed text-slate-500 dark:text-slate-400">
-                        ระบบแผนที่ดิจิทัลอัจฉริยะ เพื่อการนำทางภายในวิทยาลัยเทคนิคเพชรบูรณ์
+                    <p className="text-slate-300 text-lg font-light max-w-2xl mx-auto drop-shadow-md">
+                        โครงการระบบแผนที่ดิจิทัล <span className="text-amber-400 font-semibold">PBNTC Map</span> เพื่อการศึกษาและพัฒนาเทคโนโลยีสารสนเทศ
                     </p>
                 </div>
+            </div>
 
-                {/* Mission Cards (Staggered Animation) */}
-                <div className="grid md:grid-cols-3 gap-8 mb-24">
-                    {[
-                        { icon: Lightbulb, title: "วิสัยทัศน์", desc: "มุ่งสู่การเป็นผู้นำด้านเทคโนโลยีสารสนเทศเพื่อการศึกษา 4.0" },
-                        { icon: Code, title: "เทคโนโลยี", desc: "พัฒนาด้วย React, Tailwind CSS และสถาปัตยกรรม Modern Web" },
-                        { icon: Users, title: "เป้าหมาย", desc: "สร้างประสบการณ์การใช้งานที่ดีที่สุด รวดเร็ว และเข้าถึงง่าย" },
-                    ].map((item, idx) => (
-                        <div
-                            key={idx}
-                            className="p-8 rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 transition-all hover:-translate-y-2 group hover:shadow-lg anim-enter"
-                            style={{ animationDelay: `${idx * 150}ms` }}
-                        >
-                            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 bg-linear-to-br from-purple-500 to-pink-500 text-white shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                                <item.icon size={28} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                {item.title}
-                            </h3>
-                            <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                {item.desc}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+            <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 space-y-20">
 
-                {/* Team Section (Animation) */}
-                <div className="relative rounded-[2.5rem] overflow-hidden p-10 md:p-16 text-center mb-20 bg-white dark:bg-slate-900 shadow-xl shadow-purple-100/50 dark:shadow-none border border-slate-100 dark:border-slate-800 anim-enter delay-300">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-purple-500 to-pink-500"></div>
-                    <h2 className="text-3xl font-bold mb-16 text-slate-800 dark:text-white">ทีมผู้พัฒนา</h2>
-                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-12 justify-center">
+                {/* 2. คณะผู้จัดทำ (Project Team) */}
+                <section className="anim-enter delay-100">
+                    <div className="grid md:grid-cols-3 gap-8">
                         {teamMembers.map((member, i) => (
-                            <div key={i} className="group flex flex-col items-center">
-                                <div className="w-28 h-28 mx-auto mb-6 rounded-full p-1 bg-linear-to-br from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-all duration-500">
-                                    <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-800 bg-white dark:bg-slate-800">
-                                        <img src={`https://img.pbntc.site/${member.img}.webp`} alt={member.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                            <div key={i} className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-amber-500 dark:hover:border-amber-500 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 flex flex-col hover:-translate-y-1">
+                                <div className="h-32 bg-slate-100 dark:bg-slate-800 relative">
+                                    <div className="absolute inset-0 bg-slate-900/5 pattern-grid-lg"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-400 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </div>
+                                <div className="px-6 pb-8 flex-1 flex flex-col relative">
+                                    <div className="-mt-16 mb-4 inline-block p-1.5 bg-white dark:bg-slate-900 rounded-full self-center shadow-md border border-slate-100 dark:border-slate-700 group-hover:border-amber-500 transition-colors">
+                                        <img
+                                            src={`https://img.pbntc.site/${member.img}.webp`}
+                                            alt={member.name}
+                                            className="w-28 h-28 rounded-full object-cover"
+                                        />
+                                    </div>
+
+                                    <div className="text-center flex-1">
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{member.name}</h3>
+                                        <span className="inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 text-xs font-bold mb-4 border border-slate-200 dark:border-slate-700">
+                                            {member.role}
+                                        </span>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                                            {member.desc}
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-5 border-t border-slate-100 dark:border-slate-800">
+                                        <a
+                                            href={member.facebook}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-[#1877F2] hover:text-white text-slate-600 dark:text-slate-300 transition-all text-sm font-bold group-hover/btn border border-slate-200 dark:border-slate-700"
+                                        >
+                                            <Facebook size={18} /> ติดต่อ Facebook
+                                        </a>
                                     </div>
                                 </div>
-                                <h4 className="text-xl font-bold mb-1 text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                    {member.name}
-                                </h4>
-                                <p className="text-sm font-medium mb-5 text-purple-600 dark:text-purple-400">
-                                    {member.role}
-                                </p>
-                                <a href={member.facebook} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#1877F2] hover:bg-[#166fe5] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95 transform hover:-translate-y-0.5">
-                                    <Facebook size={16} /> Facebook
-                                </a>
                             </div>
                         ))}
                     </div>
-                </div>
+                </section>
+
+                {/* 3. Tech Stack */}
+                <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-12 border border-slate-200 dark:border-slate-800 anim-enter delay-200 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
+
+                    <div className="text-center mb-10">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center justify-center gap-2">
+                            <Cpu className="text-amber-500" /> เทคโนโลยีที่ใช้พัฒนา (Tech Stack)
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
+                            เลือกใช้เครื่องมือมาตรฐานระดับอุตสาหกรรม (Industry Standard) เพื่อประสิทธิภาพสูงสุด
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {techStack.map((tech, idx) => (
+                            <div key={idx} className="flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-default border border-transparent hover:border-amber-200 dark:hover:border-amber-900/50">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${tech.bg} ${tech.color}`}>
+                                    <tech.icon size={28} />
+                                </div>
+                                <h4 className="font-bold text-slate-900 dark:text-white text-lg">{tech.name}</h4>
+                                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">{tech.category}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 {/* Footer */}
-                <div className="py-8 text-center border-t border-slate-200 dark:border-slate-800 w-full anim-enter delay-300">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm cursor-default">
-                        <GraduationCap className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Educational Project • จัดทำเพื่อการศึกษา
-                        </span>
+                <div className="text-center text-slate-400 text-sm pt-8 border-t border-slate-200 dark:border-slate-800 anim-enter delay-300">
+                    <div className="flex items-center justify-center gap-2 mb-2 text-amber-600 dark:text-amber-500">
+                        <GraduationCap size={18} />
+                        <span className="font-bold text-slate-700 dark:text-slate-300">แผนกวิชาเทคโนโลยีสารสนเทศ วิทยาลัยเทคนิคเพชรบูรณ์</span>
                     </div>
+                    <p>© 2024 PBNTC Map Project. All rights reserved.</p>
                 </div>
+
             </div>
         </div>
     );

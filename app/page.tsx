@@ -14,7 +14,11 @@ export default function Home() {
       <section className="px-4 md:px-8">
         <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/20 min-h-120 flex items-center anim-enter group">
 
-          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105"></div>
+          {/* ✅ ใส่รูปพื้นหลังที่ขอ */}
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-105"
+            style={{ backgroundImage: "url('https://img.pbntc.site/ice.webp')" }}
+          ></div>
 
           {/* Overlay Gradient (ปรับให้เข้มขึ้นเพื่อให้ตัวหนังสืออ่านง่าย) */}
           <div className="absolute inset-0 bg-linear-to-r from-[#2e1065]/90 via-slate-900/80 to-transparent"></div>

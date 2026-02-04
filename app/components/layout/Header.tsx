@@ -1,133 +1,19 @@
 "use client";
 
 import {
-    Menu, Search, Moon, Sun, Phone, Mail, Facebook, Globe,
-    User, Building2, BookOpen, FileText, ChevronRight
+    Menu, Moon, Sun, Phone, Mail, Facebook, Globe
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useUI } from "../../contexts/UIContext";
-
-// Import Data
-import { teachersData } from "../../data/teachers";
-import { locations } from "../../data/locations";
-import { DEPARTMENTS } from "../../data/departments";
-
-type SearchResult = {
-    id: string;
-    type: "teacher" | "location" | "department" | "page";
-    title: string;
-    subtitle?: string;
-    url: string;
-};
 
 export default function Header() {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const { toggleSidebar } = useUI();
 
-    // Search States
-    const [query, setQuery] = useState("");
-    const [results, setResults] = useState<SearchResult[]>([]);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const searchRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
-
     useEffect(() => setMounted(true), []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-                setShowDropdown(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSearch = (text: string) => {
-        setQuery(text);
-        if (text.length < 2) {
-            setResults([]);
-            setShowDropdown(false);
-            return;
-        }
-
-        const lowerText = text.toLowerCase();
-        const searchResults: SearchResult[] = [];
-
-        // 1. Pages
-        const pages = [
-            { title: "หน้าหลัก", url: "/" },
-            { title: "แผนที่วิทยาลัย", url: "/map" },
-            { title: "บุคลากร", url: "/teachers" },
-            { title: "ติดต่อเรา", url: "/contact" },
-            { title: "เกี่ยวกับผู้จัดทำ", url: "/about" },
-        ];
-        pages.forEach(p => {
-            if (p.title.includes(text)) {
-                searchResults.push({ id: p.url, type: "page", title: p.title, url: p.url });
-            }
-        });
-
-        // 2. Locations
-        locations.forEach(loc => {
-            if (loc.name.toLowerCase().includes(lowerText) || loc.code.toLowerCase().includes(lowerText)) {
-                searchResults.push({
-                    id: `loc-${loc.id}`,
-                    type: "location",
-                    title: loc.name,
-                    subtitle: `อาคาร ${loc.code}`,
-                    url: `/map?location=${loc.id}`
-                });
-            }
-        });
-
-        // 3. Teachers
-        Object.values(teachersData).forEach(teacher => {
-            if (teacher.name.toLowerCase().includes(lowerText)) {
-                searchResults.push({
-                    id: teacher.id,
-                    type: "teacher",
-                    title: teacher.name,
-                    subtitle: teacher.position,
-                    url: `/teachers`
-                });
-            }
-        });
-
-        // 4. Departments
-        Object.entries(DEPARTMENTS).forEach(([key, name]) => {
-            if (name.toLowerCase().includes(lowerText)) {
-                searchResults.push({
-                    id: key,
-                    type: "department",
-                    title: name,
-                    url: `/teachers`
-                });
-            }
-        });
-
-        setResults(searchResults.slice(0, 8));
-        setShowDropdown(true);
-    };
-
-    const handleSelectResult = (url: string) => {
-        router.push(url);
-        setShowDropdown(false);
-        setQuery("");
-    };
-
-    const getTypeIcon = (type: string) => {
-        switch (type) {
-            case "teacher": return <User size={16} className="text-purple-600" />;
-            case "location": return <Building2 size={16} className="text-blue-600" />;
-            case "department": return <BookOpen size={16} className="text-emerald-600" />;
-            default: return <FileText size={16} className="text-slate-500" />;
-        }
-    };
 
     return (
         <header className="fixed top-0 left-0 w-full z-50 shadow-md">
@@ -142,14 +28,11 @@ export default function Header() {
                         <Mail size={12} className="text-amber-400" /> pbntc212@pbntc.ac.th
                     </span>
                 </div>
-                <div className="hidden md:flex items-center gap-4">
-                    <a href="#" className="hover:text-amber-400 transition-colors">สำหรับนักศึกษา</a>
-                    <a href="#" className="hover:text-amber-400 transition-colors">สำหรับบุคลากร</a>
-                    <div className="h-3 w-px bg-purple-700"></div>
-                    <div className="flex gap-3">
-                        <a href="#" className="opacity-80 hover:opacity-100 hover:text-blue-400"><Facebook size={14} /></a>
-                        <a href="#" className="opacity-80 hover:opacity-100 hover:text-green-400"><Globe size={14} /></a>
-                    </div>
+
+                {/* Right Side Socials */}
+                <div className="hidden md:flex items-center gap-3">
+                    <a target="_blank" href="https://www.facebook.com/pbntc212" className="opacity-80 hover:opacity-100 hover:text-blue-400 transition-colors"><Facebook size={14} /></a>
+                    <a target="_blank" href="https://pbntc.ac.th/" className="opacity-80 hover:opacity-100 hover:text-green-400 transition-colors"><Globe size={14} /></a>
                 </div>
             </div>
 
@@ -167,7 +50,7 @@ export default function Header() {
                         </button>
 
                         <Link href="/" className="flex items-center gap-3 group">
-                            {/* ✅ LOGO ใหม่: ใช้ img tag ดึงจากลิงก์โดยตรง */}
+                            {/* ✅ LOGO */}
                             <img
                                 src="https://img.pbntc.site/og-pbntc.svg"
                                 alt="PBNTC Logo"
@@ -183,52 +66,6 @@ export default function Header() {
                                 </span>
                             </div>
                         </Link>
-                    </div>
-
-                    {/* Center: Global Search */}
-                    <div className="hidden lg:flex flex-1 max-w-xl px-8 relative" ref={searchRef}>
-                        <div className="relative w-full group">
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => handleSearch(e.target.value)}
-                                onFocus={() => query.length >= 2 && setShowDropdown(true)}
-                                placeholder="ค้นหาทุกอย่าง... (เช่น ชื่อครู, ตึก, แผนก)"
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-600/20 focus:border-purple-600 transition-all shadow-sm"
-                            />
-                            <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4 group-focus-within:text-purple-600 transition-colors" />
-                        </div>
-
-                        {/* Search Dropdown Results */}
-                        {showDropdown && results.length > 0 && (
-                            <div className="absolute top-full left-8 right-8 mt-2 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                                <div className="py-2">
-                                    <p className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">ผลการค้นหา</p>
-                                    {results.map((result) => (
-                                        <button
-                                            key={result.id}
-                                            onClick={() => handleSelectResult(result.url)}
-                                            className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 border-b border-slate-50 dark:border-slate-800/50 last:border-none group"
-                                        >
-                                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors shadow-sm">
-                                                {getTypeIcon(result.type)}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                                    {result.title}
-                                                </p>
-                                                {result.subtitle && (
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                        {result.subtitle}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <ChevronRight size={14} className="text-slate-300 group-hover:text-purple-400 opacity-0 group-hover:opacity-100 transition-all" />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {/* Right: Actions */}

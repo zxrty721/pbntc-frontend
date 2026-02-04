@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from "react";
 import {
-    Search, MapPin, Filter, X, Building2, ChevronDown, User, ExternalLink,
-    // Icons
+    Search, Users, ChevronDown,
     Zap, Wrench, HardHat, Calculator, Monitor, Briefcase,
     Utensils, Plane, Scissors, BookOpen, Award, Megaphone,
-    Library, PenTool
+    Library, PenTool, LayoutGrid, Building2, User
 } from "lucide-react";
 import { teachersData } from "../../data/teachers";
 import { DEPARTMENTS } from "../../data/departments";
@@ -20,28 +19,38 @@ export default function TeachersPage() {
 
     const allTeachers = useMemo(() => Object.values(teachersData), []);
 
+    // Extract Departments
     const departmentOptions = useMemo(() => {
-        const depts = new Set(allTeachers.map(t => DEPARTMENTS[t.departmentId as keyof typeof DEPARTMENTS]));
-        return Array.from(depts).filter(Boolean).sort();
+        const depts = new Set(allTeachers.map(t => {
+            return DEPARTMENTS[t.departmentId as keyof typeof DEPARTMENTS] || "อื่นๆ";
+        }));
+        return Array.from(depts).sort();
     }, [allTeachers]);
 
+    // Grouping & Search
     const groupedData = useMemo(() => {
         const term = searchTerm.toLowerCase().trim();
+
         const filtered = allTeachers.filter(t => {
-            const deptName = DEPARTMENTS[t.departmentId as keyof typeof DEPARTMENTS] || "";
+            const deptName = DEPARTMENTS[t.departmentId as keyof typeof DEPARTMENTS] || "อื่นๆ";
+
             const matchesSearch =
                 t.name.toLowerCase().includes(term) ||
                 t.position.toLowerCase().includes(term) ||
                 deptName.toLowerCase().includes(term);
+
             const matchesDept = selectedDept === "all" || deptName === selectedDept;
+
             return matchesSearch && matchesDept;
         });
+
         const groups: Record<string, Teacher[]> = {};
         filtered.forEach(teacher => {
             const deptName = DEPARTMENTS[teacher.departmentId as keyof typeof DEPARTMENTS] || "อื่นๆ";
             if (!groups[deptName]) groups[deptName] = [];
             groups[deptName].push(teacher);
         });
+
         return groups;
     }, [allTeachers, searchTerm, selectedDept]);
 
@@ -75,32 +84,51 @@ export default function TeachersPage() {
     };
 
     return (
-        <div className="w-full min-h-screen pb-20 px-4 md:px-8 bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+        <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 font-sans">
 
-            <TeacherModal
-                teacher={selectedTeacher}
-                onClose={() => setSelectedTeacher(null)}
-            />
+            {/* Modal */}
+            {selectedTeacher && (
+                <TeacherModal
+                    teacher={selectedTeacher}
+                    onClose={() => setSelectedTeacher(null)}
+                />
+            )}
 
-            <div className="max-w-7xl mx-auto pt-8">
-
-                {/* Header */}
-                <div className="mb-8 md:mb-10 anim-enter">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-2 md:mb-3">
-                        ทำเนียบบุคลากร
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 flex items-center gap-2 text-base md:text-lg">
-                        <Building2 size={20} className="text-purple-600" />
-                        วิทยาลัยเทคนิคเพชรบูรณ์
-                    </p>
+            {/* 1. ส่วนหัว (Header) - ใส่รูปภาพพื้นหลัง */}
+            <div className="relative w-full h-100 bg-slate-900 flex items-center justify-center overflow-hidden border-b border-amber-500/20">
+                {/* ✅ Background Image */}
+                <div className="absolute inset-0">
+                    <img
+                        src="https://img.pbntc.site/khun.webp" // ใส่ URL รูปตึกสวยๆ ของวิทยาลัยที่นี่
+                        alt="Background"
+                        className="w-full h-full object-cover opacity-40"
+                        onError={(e) => e.currentTarget.style.display = 'none'} // ถ้าไม่มีรูปให้ซ่อน
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-900/60 to-slate-900/30"></div>
                 </div>
 
+                {/* Content */}
+                <div className="relative z-10 max-w-4xl mx-auto text-center px-6 mt-16">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs font-bold tracking-widest text-amber-400 uppercase bg-amber-950/50 border border-amber-500/50 rounded-full shadow-lg backdrop-blur-none">
+                        <Users size={12} /> Official Project Team
+                    </span>
+                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
+                        บุคลากรครูและเจ้าหน้าที่
+                    </h1>
+                    <p className="text-slate-300 text-lg font-light max-w-2xl mx-auto drop-shadow-md">
+                        โครงการระบบแผนที่ดิจิทัล <span className="text-amber-400 font-semibold">PBNTC Map</span> เพื่อการศึกษาและพัฒนาเทคโนโลยีสารสนเทศ
+                    </p>
+                </div>
+            </div>
+
+            {/* Main Content (Animation: delay-100) */}
+            <div className="grow w-full max-w-7xl mx-auto px-4 md:px-8 py-12 anim-enter delay-100">
+
                 {/* Filter Bar */}
-                {/* ✅ แก้ไขตรงนี้: เปลี่ยน z-40 เป็น z-20 เพื่อให้ต่ำกว่า Sidebar (ที่เป็น z-40) */}
-                <div className="sticky top-16 md:top-20 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-3 md:p-4 rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 mb-8 anim-enter delay-100">
-                    <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+                <div className="sticky top-20 z-30 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/40 mb-12 ring-1 ring-amber-500/10">
+                    <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-1 group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors">
                                 <Search size={20} />
                             </div>
                             <input
@@ -108,24 +136,20 @@ export default function TeachersPage() {
                                 placeholder="ค้นหาชื่อครู, ตำแหน่ง..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 text-slate-800 dark:text-white px-5 py-3 md:py-3.5 pl-12 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-400 text-sm md:text-base"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border-none ring-1 ring-slate-200 dark:ring-slate-800 text-slate-800 dark:text-white px-5 py-3.5 pl-12 rounded-xl focus:ring-2 focus:ring-amber-500 transition-all placeholder:text-slate-400 font-medium"
                             />
-                            {searchTerm && (
-                                <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors">
-                                    <X size={18} />
-                                </button>
-                            )}
                         </div>
-                        <div className="relative w-full md:w-72">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                                <Filter size={18} />
+
+                        <div className="relative w-full md:w-80 group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors pointer-events-none">
+                                <LayoutGrid size={20} />
                             </div>
                             <select
                                 value={selectedDept}
                                 onChange={(e) => setSelectedDept(e.target.value)}
-                                className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 text-slate-800 dark:text-white px-5 py-3 md:py-3.5 pl-12 pr-10 rounded-xl focus:ring-2 focus:ring-purple-500 cursor-pointer transition-all text-sm md:text-base truncate"
+                                className="w-full appearance-none bg-slate-50 dark:bg-slate-950 border-none ring-1 ring-slate-200 dark:ring-slate-800 text-slate-800 dark:text-white px-5 py-3.5 pl-12 pr-10 rounded-xl focus:ring-2 focus:ring-amber-500 cursor-pointer transition-all font-medium truncate"
                             >
-                                <option value="all">ทุกแผนกวิชา</option>
+                                <option value="all">แสดงทุกแผนกวิชา</option>
                                 {departmentOptions.map((dept, i) => (
                                     <option key={i} value={dept}>{dept}</option>
                                 ))}
@@ -137,97 +161,83 @@ export default function TeachersPage() {
                     </div>
                 </div>
 
-                {/* List */}
-                <div className="space-y-12">
+                {/* List Grid (Animation: Staggered) */}
+                <div className="space-y-14">
                     {sortedDeptKeys.length > 0 ? (
                         sortedDeptKeys.map((deptName, idx) => (
-                            <div key={idx} className="anim-enter" style={{ animationDelay: `${idx * 100}ms` }}>
+                            <div key={idx} className="anim-enter" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
 
-                                <div className="flex items-center gap-4 mb-6">
-                                    <h2 className="text-lg md:text-xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
-                                        <span className="w-1.5 h-6 bg-purple-600 rounded-full"></span>
-                                        {deptName}
-                                    </h2>
-                                    <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                                        {groupedData[deptName].length}
-                                    </span>
-                                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                                <div className="flex items-center gap-4 mb-6 group select-none">
+                                    <div className="h-10 w-1.5 bg-amber-500 rounded-full shadow-lg shadow-amber-500/50"></div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                            {deptName}
+                                        </h2>
+                                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">
+                                            {groupedData[deptName].length} บุคลากร
+                                        </p>
+                                    </div>
+                                    <div className="h-px flex-1 bg-linear-to-r from-slate-200 to-transparent dark:from-slate-800"></div>
                                 </div>
 
-                                {/* Grid Card */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {groupedData[deptName].map((teacher) => (
                                         <div
                                             key={teacher.id}
                                             onClick={() => setSelectedTeacher(teacher)}
-                                            className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 md:p-5 shadow-sm hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-700 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 flex items-center gap-4 md:gap-5 cursor-pointer relative overflow-hidden min-h-35"
+                                            className="group relative bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 shadow-sm hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col items-center text-center overflow-hidden z-10"
                                         >
-                                            {/* รูปภาพ */}
-                                            <div className="relative shrink-0 self-center">
-                                                <div className="w-20 h-24 md:w-24 md:h-28 rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-slate-700 group-hover:border-purple-500 transition-colors bg-slate-100 dark:bg-slate-800 shadow-md">
-                                                    <img
-                                                        src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
-                                                        alt={teacher.name}
-                                                        loading="lazy"
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.currentTarget.style.display = 'none';
-                                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                                        }}
-                                                    />
-                                                    <div className="absolute inset-0 items-center justify-center bg-slate-100 dark:bg-slate-800 hidden">
-                                                        <User className="text-slate-400 w-10 h-10" />
-                                                    </div>
+                                            {/* Decoration (Pointer Events None = Click Through) */}
+                                            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-400 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+
+                                            <div className="relative w-28 h-28 mb-5 rounded-full p-1.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 shadow-inner group-hover:scale-105 transition-transform duration-300 group-hover:border-amber-400 pointer-events-none">
+                                                <img
+                                                    src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
+                                                    alt={teacher.name}
+                                                    loading="lazy"
+                                                    className="w-full h-full object-cover rounded-full"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        e.currentTarget.parentElement?.classList.add('flex', 'items-center', 'justify-center');
+                                                        e.currentTarget.parentElement?.insertAdjacentHTML('beforeend', '<svg class="w-12 h-12 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>');
+                                                    }}
+                                                />
+                                                <div className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-slate-800 rounded-full border border-slate-100 dark:border-slate-700 flex items-center justify-center text-amber-600 dark:text-amber-500 shadow-md group-hover:bg-amber-50 dark:group-hover:bg-amber-900/30">
+                                                    {getDeptIcon(teacher.departmentId)}
                                                 </div>
                                             </div>
 
-                                            {/* ข้อมูล */}
-                                            <div className="min-w-0 flex-1 z-10 pr-2">
-                                                <h3 className="font-bold text-slate-800 dark:text-white text-base md:text-lg leading-snug group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
+                                            <div className="w-full pointer-events-none">
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors line-clamp-1">
                                                     {teacher.name}
                                                 </h3>
-                                                <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium mb-1">
+                                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">
                                                     {teacher.position}
                                                 </p>
 
-                                                {/* แสดงแผนก */}
-                                                <div className="inline-flex items-center gap-1.5 mt-2 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md max-w-full">
-                                                    <div className="text-purple-600 dark:text-purple-400 shrink-0">
-                                                        <Building2 size={12} />
-                                                    </div>
-                                                    <span className="text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">
-                                                        {DEPARTMENTS[teacher.departmentId as keyof typeof DEPARTMENTS]}
-                                                    </span>
-                                                </div>
+                                                <span className="inline-block px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700 truncate max-w-full">
+                                                    {DEPARTMENTS[teacher.departmentId as keyof typeof DEPARTMENTS]}
+                                                </span>
                                             </div>
-
-                                            {/* Icon Badge มุมขวาล่าง Block */}
-                                            <div className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-purple-600 dark:text-purple-400 z-10 shadow-sm group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-500 transition-colors">
-                                                {getDeptIcon(teacher.departmentId)}
-                                            </div>
-
-                                            {/* Decoration */}
-                                            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-linear-to-br from-purple-500/10 to-transparent rounded-full transition-transform group-hover:scale-150"></div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-24 text-center anim-enter">
-                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                                <Search size={36} className="text-slate-400" />
+                        <div className="flex flex-col items-center justify-center py-20 text-center anim-enter">
+                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                                <Search size={32} className="text-slate-400" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                                 ไม่พบข้อมูลที่ค้นหา
                             </h3>
-                            <button onClick={() => { setSearchTerm(""); setSelectedDept("all"); }} className="mt-6 text-purple-600 dark:text-purple-400 font-bold text-sm hover:underline">
+                            <button onClick={() => { setSearchTerm(""); setSelectedDept("all"); }} className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-lg transition-all active:scale-95">
                                 ล้างคำค้นหาทั้งหมด
                             </button>
                         </div>
                     )}
                 </div>
-
             </div>
         </div>
     );

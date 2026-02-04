@@ -1,7 +1,7 @@
 "use client";
 
 import { Home, Map, Users, Contact, UserSquare2, LogOut, ChevronRight } from "lucide-react";
-import Link from "next/link";
+// import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUI } from "../../contexts/UIContext"; // ✅ เรียกใช้ Context
 
@@ -51,7 +51,7 @@ export default function Sidebar() {
                         const isActive = pathname === item.href;
 
                         return (
-                            <Link
+                            <a
                                 key={index}
                                 href={item.href}
                                 onClick={closeSidebar} // ปิดเมนูเมื่อกดเลือก (Mobile)
@@ -81,7 +81,7 @@ export default function Sidebar() {
 
                                 {/* Arrow icon for Mobile */}
                                 <ChevronRight size={16} className="lg:hidden text-slate-300 ml-auto" />
-                            </Link>
+                            </a>
                         );
                     })}
                 </div>

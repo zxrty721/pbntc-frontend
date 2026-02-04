@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Mail, MapPin, Clock, GraduationCap, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+    Phone, Mail, MapPin, Clock, Send, Loader2,
+    CheckCircle, AlertCircle, Building2, User, FileText, Tag, GraduationCap
+} from "lucide-react";
 
 const WORKER_URL = "https://contact.pbntc.site";
 
@@ -52,49 +55,64 @@ export default function ContactPage() {
     };
 
     const contactInfo = [
-        { icon: MapPin, title: "ที่อยู่", desc: "วิทยาลัยเทคนิคเพชรบูรณ์ 212 ถนนสระบุรี-หล่มสัก ตำบลในเมือง อำเภอเมืองเพชรบูรณ์ จังหวัดเพชรบูรณ์ 67000" },
-        { icon: Phone, title: "เบอร์โทรศัพท์", desc: "056-711455" },
-        { icon: Mail, title: "อีเมล", desc: "pbntc212@pbntc.ac.th" },
-        { icon: Clock, title: "เวลาทำการ", desc: "จันทร์ - ศุกร์: 08:30 - 16:30 น." },
+        { icon: Building2, title: "ที่อยู่ไปรษณีย์", desc: "วิทยาลัยเทคนิคเพชรบูรณ์ เลขที่ 212 ถนนสระบุรี-หล่มสัก ตำบลในเมือง อำเภอเมือง จังหวัดเพชรบูรณ์ 67000" },
+        { icon: Phone, title: "โทรศัพท์", desc: "056-711455 (งานประชาสัมพันธ์)" },
+        { icon: Mail, title: "อีเมลสารบรรณ", desc: "pbntc212@pbntc.ac.th" },
+        { icon: Clock, title: "เวลาทำการ", desc: "วันจันทร์ - วันศุกร์: 08:30 - 16:30 น. (เว้นวันหยุดราชการ)" },
     ];
 
     return (
-        <div className="w-full min-h-screen pb-24 px-4 md:px-8 transition-colors duration-300">
-            <div className="max-w-6xl mx-auto pt-10">
+        // ✅ ใช้ flex-col + min-h-screen เพื่อจัด Layout ให้ Footer อยู่ล่างสุดเสมอ
+        <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 anim-enter">
 
-                {/* Header (Animation) */}
-                <div className="text-center mb-16 space-y-4 anim-enter">
-                    <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm">
-                        Contact Us
-                    </span>
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-slate-800 dark:text-white">
-                        ติดต่อสอบถาม
-                    </h2>
-                    <p className="text-lg max-w-2xl mx-auto leading-relaxed text-slate-500 dark:text-slate-400">
-                        มีข้อสงสัยเกี่ยวกับเส้นทาง อาคารเรียน หรือข้อมูลอื่นๆ ติดต่อเราได้หลากหลายช่องทาง
-                    </p>
+            {/* 1. ส่วนหัว (Header) - ใส่รูปภาพพื้นหลัง */}
+            <div className="relative w-full h-100 bg-slate-900 flex items-center justify-center overflow-hidden border-b border-amber-500/20">
+                {/* ✅ Background Image */}
+                <div className="absolute inset-0">
+                    <img
+                        src="https://img.pbntc.site/ice.webp" // ใส่ URL รูปตึกสวยๆ ของวิทยาลัยที่นี่
+                        alt="Background"
+                        className="w-full h-full object-cover opacity-40"
+                        onError={(e) => e.currentTarget.style.display = 'none'} // ถ้าไม่มีรูปให้ซ่อน
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-900/60 to-slate-900/30"></div>
                 </div>
 
-                {/* Content Grid (Animation Delay) */}
-                <div className="grid lg:grid-cols-2 gap-10 mb-20 anim-enter delay-100">
+                {/* Content */}
+                <div className="relative z-10 max-w-4xl mx-auto text-center px-6 mt-16">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs font-bold tracking-widest text-amber-400 uppercase bg-amber-950/50 border border-amber-500/50 rounded-full shadow-lg backdrop-blur-none">
+                        <Mail size={12} /> Official Project Team
+                    </span>
+                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg">
+                        ศูนย์บริการข้อมูลและติดต่อสอบถาม
+                    </h1>
+                    <p className="text-slate-300 text-lg font-light max-w-2xl mx-auto drop-shadow-md">
+                        โครงการระบบแผนที่ดิจิทัล <span className="text-amber-400 font-semibold">PBNTC Map</span> เพื่อการศึกษาและพัฒนาเทคโนโลยีสารสนเทศ
+                    </p>
+                </div>
+            </div>
 
-                    {/* Left: Info */}
-                    <div className="space-y-8">
-                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 transition-all hover:shadow-md">
-                            <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-purple-600 dark:text-purple-400">
-                                <MapPin /> ข้อมูลการติดต่อ
+            {/* Main Content (ใช้ flex-grow ดัน Footer) */}
+            <div className="grow w-full max-w-7xl mx-auto px-4 md:px-8 py-12">
+                <div className="grid lg:grid-cols-5 gap-8 lg:gap-12">
+
+                    {/* Left: Info & Map (Animation Delay 100ms) */}
+                    <div className="lg:col-span-2 space-y-6 anim-enter delay-100">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-lg">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 items-center gap-2 border-b-2 border-amber-500 pb-2 inline-block">
+                                <MapPin className="text-amber-500" /> ข้อมูลการติดต่อ
                             </h3>
                             <div className="space-y-6">
                                 {contactInfo.map((info, i) => (
-                                    <div key={i} className="flex gap-4 group">
-                                        <div className="w-12 h-12 rounded-2xl shrink-0 flex items-center justify-center bg-purple-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                                    <div key={i} className="flex gap-4 items-start">
+                                        <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-amber-600 border border-slate-200 dark:border-slate-700">
                                             <info.icon size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                            <h4 className="font-bold text-slate-800 dark:text-white text-xs uppercase tracking-wide mb-1">
                                                 {info.title}
                                             </h4>
-                                            <p className="text-sm mt-1 leading-relaxed text-slate-500 dark:text-slate-400">
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                                 {info.desc}
                                             </p>
                                         </div>
@@ -103,67 +121,112 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        {/* Google Maps */}
-                        <div className="w-full h-80 bg-slate-200 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-lg border border-white/10 relative group transition-transform hover:scale-[1.01]">
+                        <div className="w-full h-72 bg-slate-200 dark:bg-slate-800 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-xl relative">
+                            <div className="absolute top-3 left-3 z-10 bg-slate-900/90 text-amber-400 px-3 py-1 rounded text-xs font-bold shadow-md border border-amber-500/30">
+                                แผนที่วิทยาลัย
+                            </div>
                             <iframe
-                                title="Map"
-                                src="https://maps.google.com/maps?q=Phetchabun%20Technical%20College&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                                className="absolute inset-0 w-full h-full border-0 grayscale group-hover:grayscale-0 transition-all duration-500 dark:opacity-80 dark:invert-[0.9] dark:hue-rotate-180"
-                                allowFullScreen={true}
+                                title="PBNTC Map"
+                                src="https://maps.google.com/maps?q=วิทยาลัยเทคนิคเพชรบูรณ์&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                className="absolute inset-0 w-full h-full border-0 grayscale hover:grayscale-0 transition-all duration-500"
                                 loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
                             ></iframe>
                         </div>
                     </div>
 
-                    {/* Right: Contact Form */}
-                    <div className="p-8 md:p-10 rounded-3xl h-full flex flex-col relative overflow-hidden bg-white dark:bg-slate-900 shadow-xl shadow-purple-100/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-purple-500 to-pink-500"></div>
-                        <div className="mb-8">
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">ส่งข้อความถึงเรา</h3>
-                            <p className="text-sm mt-2 text-slate-500 dark:text-slate-400">กรอกข้อมูลด้านล่างเพื่อติดต่อเจ้าหน้าที่</p>
+                    {/* Right: Form (Animation Delay 200ms) */}
+                    <div className="lg:col-span-3 anim-enter delay-200">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl h-full relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-bl-[80px] pointer-events-none"></div>
+
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 relative z-10">
+                                แบบฟอร์มติดต่อสอบถาม
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 relative z-10">
+                                กรุณากรอกข้อมูลให้ครบถ้วน เจ้าหน้าที่จะติดต่อกลับทางอีเมลโดยเร็วที่สุด
+                            </p>
+
+                            <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
+                                        <div className="relative">
+                                            <User className="absolute left-3.5 top-3.5 text-slate-400 w-5 h-5" />
+                                            <input
+                                                type="text" name="name" required value={formData.name} onChange={handleChange} disabled={status === "loading"}
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                                                placeholder="ระบุชื่อผู้ติดต่อ"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">อีเมล <span className="text-red-500">*</span></label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3.5 top-3.5 text-slate-400 w-5 h-5" />
+                                            <input
+                                                type="email" name="email" required value={formData.email} onChange={handleChange} disabled={status === "loading"}
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                                                placeholder="name@example.com"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">หัวข้อเรื่อง <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <Tag className="absolute left-3.5 top-3.5 text-slate-400 w-5 h-5" />
+                                        <input
+                                            type="text" name="subject" required value={formData.subject} onChange={handleChange} disabled={status === "loading"}
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                                            placeholder="ระบุเรื่องที่ต้องการติดต่อ"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">รายละเอียด <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <FileText className="absolute left-3.5 top-3.5 text-slate-400 w-5 h-5" />
+                                        <textarea
+                                            name="message" required rows={5} value={formData.message} onChange={handleChange} disabled={status === "loading"}
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none leading-relaxed"
+                                            placeholder="พิมพ์ข้อความของคุณที่นี่..."
+                                        ></textarea>
+                                    </div>
+                                </div>
+
+                                {status === "error" && (
+                                    <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 border border-red-200 dark:border-red-800 text-sm flex items-center gap-3">
+                                        <AlertCircle size={20} /> {errorMessage}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={status === "loading" || status === "success"}
+                                    className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg flex items-center justify-center gap-2 mt-4 transition-all active:scale-[0.98] ${status === "success"
+                                        ? "bg-emerald-600 text-white cursor-default"
+                                        : status === "loading"
+                                            ? "bg-slate-400 text-white cursor-wait"
+                                            : "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/20"
+                                        }`}
+                                >
+                                    {status === "loading" ? <><Loader2 className="animate-spin" size={20} /> กำลังส่งข้อมูล...</> : status === "success" ? <><CheckCircle size={20} /> ส่งเรียบร้อยแล้ว</> : <><Send size={20} /> ส่งข้อความ</>}
+                                </button>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-5 grow flex flex-col justify-center">
-                            <div className="grid md:grid-cols-2 gap-5">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
-                                    <input type="text" name="name" required value={formData.name} onChange={handleChange} disabled={status === "loading"} className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all disabled:opacity-60 placeholder:text-slate-400 dark:placeholder:text-slate-500" placeholder="ระบุชื่อของคุณ" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">อีเมลติดต่อกลับ <span className="text-red-500">*</span></label>
-                                    <input type="email" name="email" required value={formData.email} onChange={handleChange} disabled={status === "loading"} className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all disabled:opacity-60 placeholder:text-slate-400 dark:placeholder:text-slate-500" placeholder="name@example.com" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">หัวข้อเรื่อง <span className="text-red-500">*</span></label>
-                                <input type="text" name="subject" required value={formData.subject} onChange={handleChange} disabled={status === "loading"} className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all disabled:opacity-60 placeholder:text-slate-400 dark:placeholder:text-slate-500" placeholder="เช่น สอบถามเรื่องการรับสมัคร" />
-                            </div>
-                            <div className="space-y-2 grow">
-                                <label className="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">ข้อความ <span className="text-red-500">*</span></label>
-                                <textarea name="message" required rows={6} value={formData.message} onChange={handleChange} disabled={status === "loading"} className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none disabled:opacity-60 placeholder:text-slate-400 dark:placeholder:text-slate-500" placeholder="รายละเอียดที่ต้องการสอบถาม..."></textarea>
-                            </div>
-                            {status === "error" && (
-                                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm flex items-center gap-2 animate-pulse">
-                                    <AlertCircle size={16} /> {errorMessage}
-                                </div>
-                            )}
-                            <button type="submit" disabled={status === "loading" || status === "success"} className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 mt-4 transition-all duration-300 transform active:scale-95 ${status === "success" ? "bg-green-500 text-white cursor-default" : status === "loading" ? "bg-slate-400 text-white cursor-wait" : "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-200 dark:shadow-none"}`}>
-                                {status === "loading" ? <><Loader2 className="animate-spin" /> กำลังส่งข้อมูล...</> : status === "success" ? <><CheckCircle /> ส่งเรียบร้อยแล้ว!</> : <><Send size={18} /> ส่งข้อความ</>}
-                            </button>
-                        </form>
                     </div>
                 </div>
+            </div>
 
-                {/* Footer */}
-                <div className="py-8 text-center border-t border-slate-200 dark:border-slate-800 w-full anim-enter delay-200">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm cursor-default">
-                        <GraduationCap className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Phetchabun Technical College • วิทยาลัยเทคนิคเพชรบูรณ์
-                        </span>
-                    </div>
+            {/* Footer */}
+            <div className="w-full py-8 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-center shrink-0">
+                <div className="flex items-center justify-center gap-2 mb-2 text-amber-600 dark:text-amber-500">
+                    <GraduationCap size={20} />
+                    <span className="font-bold text-slate-700 dark:text-slate-300 text-sm uppercase tracking-wide">วิทยาลัยเทคนิคเพชรบูรณ์</span>
                 </div>
+                <p className="text-slate-500 text-xs">© 2024 PBNTC Map Project. All rights reserved.</p>
             </div>
         </div>
     );
