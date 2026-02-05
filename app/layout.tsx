@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Kanit } from "next/font/google";
 import "./globals.css";
 import Header from "./components/layout/Header";
-import Sidebar from "./components/layout/Sidebar";
 import Footer from "./components/layout/Footer";
 import { Providers } from "./providers";
 import { UIProvider } from "./contexts/UIContext"; // ✅ 1. อย่าลืม Import นี้
@@ -34,11 +33,6 @@ export default function RootLayout({
             <Header />
 
             <div className="flex flex-col min-h-screen pt-24 md:pt-28">
-
-              {/* Sidebar ใช้ useUI เพื่อรับค่าเปิด/ปิด จึงต้องอยู่ข้างใน */}
-              <div className="fixed left-0 top-0 bottom-0 z-40">
-                <Sidebar />
-              </div>
 
               {/* Main Content */}
               <main className="grow w-full md:pl-24 transition-all duration-300">
