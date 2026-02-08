@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Kanit } from "next/font/google";
 import "./globals.css";
 import Header from "./components/layout/Header";
-// ❌ ลบอันเดิมออก
-// import Footer from "./components/layout/Footer"; 
-// ✅ 1. เพิ่ม import อันใหม่เข้ามา
 import ConditionalFooter from "./components/layout/ConditionalFooter";
 
 import { Providers } from "./providers";

@@ -5,9 +5,9 @@ import Link from "next/link";
 
 export default function Footer() {
     const teamMembers = [
-        { name: "นายเอกภพ", role: "Fullstack Dev", facebook: "https://www.facebook.com/share/19NegsSmh2/" },
-        { name: "นายนราเทพ", role: "UX/UI Designer", facebook: "https://www.facebook.com/share/1Mj5r6Y1zs/" },
-        { name: "นายวัชรสิทธิ์", role: "Project Advisor", facebook: "https://www.facebook.com/share/17yJpL7Ptu/" },
+        { name: "นายเอกภพ หนูเสริม", role: "Fullstack Dev", facebook: "https://www.facebook.com/share/19NegsSmh2/" },
+        { name: "นายนราเทพ ยิ้มศรี", role: "UX/UI Designer", facebook: "https://www.facebook.com/share/1Mj5r6Y1zs/" },
+        { name: "นายวัชรสิทธิ์ บุ้นประสิทธิ์ชัย", role: "Project Advisor", facebook: "https://www.facebook.com/share/17yJpL7Ptu/" },
     ];
 
     return (

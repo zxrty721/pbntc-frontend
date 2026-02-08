@@ -9,21 +9,21 @@ import {
 export default function AboutPage() {
     const teamMembers = [
         {
-            name: "นายเอกภพ",
+            name: "นายเอกภพ หนูเสริม",
             role: "Lead Developer",
             desc: "รับผิดชอบด้านโครงสร้างระบบ (System Architecture) และการเขียนโปรแกรมทั้งส่วนหน้าและหลังบ้าน",
             img: "ice",
             facebook: "https://www.facebook.com/share/19NegsSmh2/"
         },
         {
-            name: "นายนราเทพ",
+            name: "นายนราเทพ ยิ้มศรี",
             role: "Lead UX/UI Design",
             desc: "รับผิดชอบด้านการออกแบบประสบการณ์ผู้ใช้งาน (UX) และส่วนติดต่อผู้ใช้งาน (UI) ให้สวยงามและใช้งานง่าย",
             img: "tar",
             facebook: "https://www.facebook.com/share/1Mj5r6Y1zs/"
         },
         {
-            name: "นายวัชรสิทธิ์",
+            name: "นายวัชรสิทธิ์ บุ้นประสิทธิ์ชัย",
             role: "Project Advisor",
             desc: "ให้คำปรึกษาและตรวจสอบความถูกต้องของระบบ เพื่อให้โครงการดำเนินไปตามวัตถุประสงค์",
             img: "khun",
