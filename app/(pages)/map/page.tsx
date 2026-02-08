@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { X, Building2, ArrowRight, Maximize, Minimize } from "lucide-react";
@@ -14,8 +14,10 @@ import { locations } from "../../data/locations";
 import { teachersData } from "../../data/teachers";
 import type { MapLocation } from "../../types";
 
-export default function MapPage() {
-    // ... Logic เดิม ...
+// ==========================================
+// 1️⃣ ส่วนเนื้อหาหลัก (ย้าย Logic มาไว้ในนี้)
+// ==========================================
+function MapContent() {
     const searchParams = useSearchParams();
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(null);
@@ -90,7 +92,6 @@ export default function MapPage() {
     };
 
     return (
-        // ✅ Container นี้ต้องเป็น RELATIVE เพื่อให้ Sidebar (Absolute) ไม่หลุดออกไป
         <div
             ref={mapContainerRef}
             className={`
@@ -98,7 +99,6 @@ export default function MapPage() {
                 ${isFullscreen ? 'h-screen w-screen fixed inset-0 z-50' : 'h-[calc(100vh-64px)] md:h-[calc(100vh-80px)]'}
             `}
         >
-            {/* 1. Controls (Search + Toggle) */}
             <MapControls
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -106,12 +106,10 @@ export default function MapPage() {
                 setSidebarOpen={setIsSidebarOpen}
             />
 
-            {/* 2. Map Area */}
             <div className="flex-1 w-full h-full z-0">
                 <TransformWrapper initialScale={1} minScale={0.5} maxScale={4} centerOnInit wheel={{ step: 0.1 }}>
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>
-                            {/* Zoom Buttons */}
                             <div className="absolute bottom-24 right-4 md:bottom-8 md:right-8 flex flex-col gap-2 z-20">
                                 <button onClick={() => zoomIn()} className="w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-800 text-slate-700 dark:text-white rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 transition-colors">+</button>
                                 <button onClick={() => zoomOut()} className="w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-800 text-slate-700 dark:text-white rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 transition-colors">-</button>
@@ -134,12 +132,10 @@ export default function MapPage() {
                 </TransformWrapper>
             </div>
 
-            {/* 3. Popup Detail */}
             {selectedLocation && (
                 <>
                     <div className="fixed inset-0 bg-black/40 z-30 md:hidden animate-in fade-in" onClick={() => setSelectedLocation(null)}></div>
                     <div className="absolute bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 rounded-t-3xl shadow-[0_-5px_30px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-full duration-300 md:absolute md:top-24 md:left-auto md:right-8 md:bottom-auto md:w-80 md:rounded-2xl md:shadow-2xl md:border md:border-slate-200 md:dark:border-slate-700">
-                        {/* Detail Content (เหมือนเดิม) */}
                         <div className="w-full flex justify-center pt-3 pb-1 md:hidden" onClick={() => setSelectedLocation(null)}><div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></div></div>
                         <div className="h-32 md:h-40 bg-slate-200 dark:bg-slate-800 relative group overflow-hidden md:rounded-t-2xl">
                             {selectedLocation.images?.[0] ? (<img src={`https://zone.pbntc.site/${selectedLocation.images[0]}`} alt={selectedLocation.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onError={(e) => e.currentTarget.style.display = 'none'} />) : (<div className="w-full h-full flex flex-col items-center justify-center text-slate-400"><Building2 size={32} className="mb-2 opacity-50" /><span className="text-[10px]">ไม่มีรูปภาพ</span></div>)}
@@ -155,7 +151,6 @@ export default function MapPage() {
                 </>
             )}
 
-            {/* ✅ 4. Sidebar (อยู่ภายใน Container นี้ แต่ลอยทับ Map) */}
             <MapSidebar
                 isSidebarOpen={isSidebarOpen}
                 setSidebarOpen={setIsSidebarOpen}
@@ -164,5 +159,28 @@ export default function MapPage() {
                 onSelectLocation={handleSelectLocation}
             />
         </div>
+    );
+}
+
+// ==========================================
+// 2️⃣ Loading Fallback (หน้าโหลดระหว่างรอ URL)
+// ==========================================
+function MapLoading() {
+    return (
+        <div className="w-full h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-3">
+            <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-800 border-t-amber-500 rounded-full animate-spin"></div>
+            <p className="animate-pulse font-medium text-sm text-slate-400">กำลังโหลดแผนที่...</p>
+        </div>
+    );
+}
+
+// ==========================================
+// 3️⃣ Main Export (ครอบ Suspense แก้ Error)
+// ==========================================
+export default function MapPage() {
+    return (
+        <Suspense fallback={<MapLoading />}>
+            <MapContent />
+        </Suspense>
     );
 }
