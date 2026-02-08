@@ -1,13 +1,10 @@
 "use client";
 
 import {
-    X, Phone, MapPin, Building2,
-    Zap, Wrench, HardHat, Calculator, Monitor, Briefcase,
-    Utensils, Plane, Scissors, BookOpen, Award, Megaphone,
-    Library, PenTool, User
+    X, Phone, MapPin, Building2, User, ExternalLink
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import type { Teacher } from "../../types";
 import { DEPARTMENTS } from "../../data/departments";
 import { locations } from "../../data/locations";
@@ -19,13 +16,11 @@ interface TeacherModalProps {
 
 export default function TeacherModal({ teacher, onClose }: TeacherModalProps) {
     const [isVisible, setIsVisible] = useState(false);
-    const [imageError, setImageError] = useState(false); // ✅ ใช้ State คุมรูปภาพ
-    const modalRef = useRef<HTMLDivElement>(null);
+    const [imageError, setImageError] = useState(false);
 
-    // Reset state เมื่อเปลี่ยนคน
     useEffect(() => {
         if (teacher) {
-            setImageError(false); // รีเซ็ตสถานะรูป
+            setImageError(false);
             setTimeout(() => setIsVisible(true), 10);
             document.body.style.overflow = "hidden";
         } else {
@@ -39,129 +34,138 @@ export default function TeacherModal({ teacher, onClose }: TeacherModalProps) {
 
     const deptName = DEPARTMENTS[teacher.departmentId as keyof typeof DEPARTMENTS] || "ไม่ระบุแผนก";
 
-    const getLocationName = (id: string | number) => {
+    // ฟังก์ชันดึงข้อมูลอาคารแบบเต็ม (ชื่อ และ Code)
+    const getLocationInfo = (id: string | number) => {
         const loc = locations.find(l => l.id.toString() === id.toString());
-        return loc ? loc.name : `อาคาร ${id}`;
+        return loc ? { name: loc.name, code: loc.code } : { name: `อาคารเรียน`, code: "N/A" };
     };
 
     return (
         <div
-            className={`fixed inset-0 z-9999 flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? "opacity-100 visible" : "opacity-0 invisible"}`}
+            className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
         >
-            {/* Backdrop */}
+            {/* 🟢 Backdrop: ใช้สี Solid 90% (ห้ามใช้ Blur) */}
             <div
-                className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm transition-opacity duration-300"
+                className="absolute inset-0 bg-slate-950/90"
                 onClick={onClose}
             ></div>
 
             {/* Modal Box */}
             <div
-                ref={modalRef}
                 className={`
-                  relative bg-white dark:bg-slate-900 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh]
-                  transform transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-                  ${isVisible ? "scale-100 translate-y-0" : "scale-95 translate-y-8"}
-                `}
+          relative bg-white dark:bg-slate-900 w-full max-w-7xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]
+          transform transition-transform duration-500 ${isVisible ? "translate-y-0" : "translate-y-12"}
+        `}
             >
-                {/* 🔴 Desktop Close Button (Floating Outside Content) */}
+                {/* ❌ Close Button (Desktop) */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 bg-white/20 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 hover:text-red-500 transition-colors hidden md:flex cursor-pointer backdrop-blur-md"
+                    className="absolute top-6 right-6 z-50 p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-red-500 hover:text-white rounded-full text-slate-600 transition-all hidden md:flex"
                 >
                     <X size={24} />
                 </button>
 
-                {/* Left: Image Section */}
-                <div className="w-full md:w-2/5 h-72 md:h-auto bg-slate-100 dark:bg-slate-800 relative shrink-0">
-
-                    {/* ✅ Logic แสดงรูปภาพแบบ React State */}
+                {/* 🖼️ Left: Image Section */}
+                <div className="w-full md:w-[42%] h-72 md:h-auto bg-slate-200 dark:bg-slate-800 shrink-0 relative">
                     {!imageError ? (
                         <img
-                            key={teacher.id} // บังคับ Re-render เมื่อเปลี่ยน ID
                             src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
                             alt={teacher.name}
                             className="w-full h-full object-cover object-top"
-                            onError={() => setImageError(true)} // ถ้ารูปเสีย ให้เซ็ต State
-                            loading="eager"
+                            onError={() => setImageError(true)}
                         />
                     ) : (
-                        // Fallback เมื่อรูปเสีย
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-200 dark:bg-slate-800">
-                            <User size={64} className="mb-2 opacity-50" />
-                            <span className="text-sm font-medium opacity-70">ไม่มีรูปภาพ</span>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                            <User size={80} className="opacity-20" />
                         </div>
                     )}
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent md:hidden pointer-events-none"></div>
+                    {/* Mobile Overlay (Solid Gradient) */}
+                    <div className="absolute inset-0 bg-linear-to-t from-white dark:from-slate-900 via-transparent to-transparent md:hidden"></div>
 
-                    {/* 🔴 Mobile Close Button */}
+                    {/* ❌ Close Button (Mobile) */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 z-50 p-2 bg-black/50 text-white rounded-full md:hidden backdrop-blur-md cursor-pointer hover:bg-red-500 transition-colors"
+                        className="absolute top-4 right-4 z-50 p-2 bg-slate-950/60 text-white rounded-full md:hidden"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* Right: Info Section */}
-                <div className="flex-1 p-6 md:p-8 overflow-y-auto bg-white dark:bg-slate-900 custom-scrollbar">
-                    <div className="space-y-8 pb-4 mt-4 md:mt-0">
+                {/* 📝 Right: Info Section */}
+                <div className="flex-1 p-8 md:p-12 overflow-y-auto bg-white dark:bg-slate-900">
+                    <div className="space-y-10">
 
-                        {/* Header Info */}
-                        <div className="anim-enter delay-100">
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight mb-2 pr-8">
+                        {/* 1. Header Info (Font Black อ่านง่าย) */}
+                        <div className="space-y-3">
+                            <div className="inline-block px-3 py-1 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-xs font-black uppercase tracking-widest">
+                                {deptName}
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white leading-[1.1]">
                                 {teacher.name}
                             </h2>
-                            <p className="text-amber-600 dark:text-amber-400 font-bold text-lg md:text-xl mb-4">
+                            <p className="text-slate-600 dark:text-slate-400 text-xl font-bold italic">
                                 {teacher.position}
                             </p>
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700">
-                                <Building2 size={16} className="text-amber-500" /> {deptName}
-                            </span>
                         </div>
 
-                        {/* Contact & Location */}
-                        <div className="space-y-4 anim-enter delay-200">
-
-                            {/* Phone */}
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-900 transition-colors">
-                                <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl shadow-sm text-amber-600 dark:text-amber-500 shrink-0 border border-slate-100 dark:border-slate-700">
-                                    <Phone size={20} />
+                        {/* 2. Contact Card (Solid Style) */}
+                        <div className="space-y-4">
+                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">ช่องทางการติดต่อ</h4>
+                            <div className="flex items-center gap-5 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 group">
+                                <div className="w-14 h-14 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center text-amber-600 shrink-0 border border-slate-200 dark:border-slate-600">
+                                    <Phone size={28} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">เบอร์โทรศัพท์</p>
-                                    <a href={`tel:${teacher.contact?.phone || ''}`} className="text-lg font-bold text-slate-900 dark:text-white hover:text-amber-600 transition-colors">
-                                        {teacher.contact?.phone || "-"}
+                                    <p className="text-[10px] text-slate-400 font-black uppercase mb-1">เบอร์โทรศัพท์</p>
+                                    <a
+                                        href={`tel:${teacher.contact?.phone || ''}`}
+                                        className="text-2xl font-black text-slate-900 dark:text-white hover:text-amber-600 transition-colors"
+                                    >
+                                        {teacher.contact?.phone || "ไม่มีข้อมูล"}
                                     </a>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Locations */}
-                            {teacher.locationIds && teacher.locationIds.length > 0 && (
-                                <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20">
-                                    <div className="flex items-center gap-2 mb-3 text-slate-800 dark:text-white font-bold text-sm">
-                                        <MapPin size={18} className="text-amber-500" /> สถานที่ประจำ / ห้องพักครู
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        {teacher.locationIds.map((locId, idx) => (
+                        {/* 3. Locations (ใช้ชื่ออาคาร + Code / ห้ามโชว์ ID) */}
+                        {teacher.locationIds && teacher.locationIds.length > 0 && (
+                            <div className="space-y-4">
+                                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">สถานที่ประจำ / ห้องพักครู</h4>
+                                <div className="grid gap-3">
+                                    {teacher.locationIds.map((locId, idx) => {
+                                        const locInfo = getLocationInfo(locId);
+                                        return (
                                             <Link
                                                 key={idx}
                                                 href={`/map?location=${locId}`}
-                                                className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-amber-400 transition-all group border border-transparent hover:border-amber-200 dark:hover:border-slate-600"
+                                                className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl hover:border-amber-500 transition-all group"
                                             >
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:translate-x-1 transition-transform">
-                                                    {getLocationName(locId)}
-                                                </span>
-                                                <span className="text-[10px] font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-slate-500 group-hover:text-amber-600 group-hover:border-amber-200 transition-colors">
-                                                    อาคาร {locId}
-                                                </span>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                                        <MapPin size={22} />
+                                                    </div>
+                                                    {/* แสดงชื่ออาคารแบบตัวหนา */}
+                                                    <span className="font-black text-slate-800 dark:text-slate-100 text-base">
+                                                        {locInfo.name}
+                                                    </span>
+                                                </div>
+                                                {/* แสดง Code ของอาคาร (ห้ามโชว์ ID) */}
+                                                <div className="flex items-center gap-2 text-xs font-black text-slate-400 group-hover:text-amber-500">
+                                                    อาคาร: {locInfo.code} <ExternalLink size={14} />
+                                                </div>
                                             </Link>
-                                        ))}
-                                    </div>
+                                        );
+                                    })}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className="mt-12 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">PBNTC IT DEPARTMENT STAFF DIRECTORY</p>
                     </div>
                 </div>
             </div>

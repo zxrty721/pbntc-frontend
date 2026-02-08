@@ -53,7 +53,7 @@ export default function Header() {
                 </div>
 
                 {/* MAIN NAVBAR */}
-                <div className="w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 h-16 md:h-20 transition-all">
+                <div className="w-full bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 h-16 md:h-20 transition-all">
                     <div className="h-full px-4 md:px-6 flex items-center justify-between gap-4">
 
                         {/* Logo Section */}
@@ -125,7 +125,7 @@ export default function Header() {
                 <div className="fixed inset-0 z-40 lg:hidden">
                     {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+                        className="absolute inset-0 bg-black/50 transition-opacity"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
 

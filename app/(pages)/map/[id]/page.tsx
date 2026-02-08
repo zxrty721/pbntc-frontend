@@ -1,13 +1,13 @@
 "use client";
 export const runtime = 'edge';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    ArrowLeft, Building2, Phone, Search, X,
-    ChevronLeft, ChevronRight, Maximize2, MapPin,
-    Cpu, Wrench, Zap, Calculator, PenTool, Briefcase, BookOpen, Layers
+    ArrowLeft, Phone, Search, X,
+    ChevronLeft, ChevronRight, Maximize2, MapPin, Layers,
+    GraduationCap, Info, ExternalLink, Building2
 } from "lucide-react";
 
 import { locations } from "../../../data/locations";
@@ -16,77 +16,33 @@ import { DEPARTMENTS } from "../../../data/departments";
 import TeacherModal from "../../../components/ui/TeacherModal";
 import type { Teacher } from "../../../types";
 
-// 🛠️ Helper: เลือก Icon ตามรหัสแผนก
-const getDepartmentIcon = (deptId: string) => {
-    // แปลงเป็น lowercase เพื่อ check ง่ายๆ (สมมติรหัสเป็น IT, MECH, ELEC ฯลฯ)
-    const id = deptId.toLowerCase();
-
-    if (id.includes("it") || id.includes("com")) return Cpu;
-    if (id.includes("mech") || id.includes("auto")) return Wrench;
-    if (id.includes("elec") || id.includes("power")) return Zap;
-    if (id.includes("acc") || id.includes("account")) return Calculator;
-    if (id.includes("arch") || id.includes("const")) return PenTool;
-    if (id.includes("manage")) return Briefcase;
-
-    return BookOpen; // Default Icon
-};
+interface DeptCount {
+    id: string;
+    count: number;
+}
 
 export default function LocationDetailPage() {
     const params = useParams();
 
-    // State
+    // States
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [teacherSearch, setTeacherSearch] = useState("");
     const [selectedDept, setSelectedDept] = useState("all");
-
-    // Lightbox State
-    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-    // 1. หาข้อมูลตึก
+    // Data Memoization
     const location = useMemo(() => {
         const searchId = Number(params.id);
         return locations.find(l => l.id === searchId);
     }, [params.id]);
 
-    // 2. หาครูในตึกนี้
     const teachersInBuilding = useMemo(() => {
         if (!location) return [];
-        return Object.values(teachersData).filter(t => {
-            if (t.locationIds && Array.isArray(t.locationIds)) {
-                return t.locationIds.includes(location.id);
-            }
-            // @ts-ignore
-            return t.locationId === location.id;
-        });
+        return Object.values(teachersData).filter(t => t.locationIds?.includes(location.id));
     }, [location]);
 
-    // 3. จัดกลุ่มครูตามแผนก (สำหรับการแสดงผลแบบแยกหัวข้อ)
-    const groupedTeachers = useMemo(() => {
-        // กรองตามคำค้นหา (Search) ก่อน
-        const filteredBySearch = teachersInBuilding.filter(t =>
-            t.name.toLowerCase().includes(teacherSearch.toLowerCase()) ||
-            t.position.toLowerCase().includes(teacherSearch.toLowerCase())
-        );
-
-        // Grouping
-        const groups: Record<string, Teacher[]> = {};
-
-        filteredBySearch.forEach(t => {
-            // ถ้าเลือก Filter แผนกอยู่ และไม่ตรงกับแผนกของครูคนนี้ -> ข้าม
-            if (selectedDept !== "all" && t.departmentId !== selectedDept) return;
-
-            if (!groups[t.departmentId]) {
-                groups[t.departmentId] = [];
-            }
-            groups[t.departmentId].push(t);
-        });
-
-        return groups;
-    }, [teachersInBuilding, teacherSearch, selectedDept]);
-
-    // 4. รายชื่อแผนกที่มีในตึกนี้ (สำหรับ Dropdown Filter)
-    const availableDepartments = useMemo(() => {
+    const availableDepartments = useMemo<DeptCount[]>(() => {
         const deptCounts: Record<string, number> = {};
         teachersInBuilding.forEach(t => {
             deptCounts[t.departmentId] = (deptCounts[t.departmentId] || 0) + 1;
@@ -94,150 +50,186 @@ export default function LocationDetailPage() {
         return Object.entries(deptCounts).map(([id, count]) => ({ id, count }));
     }, [teachersInBuilding]);
 
-    // --- Lightbox Functions ---
-    const openLightbox = (index: number) => {
-        setCurrentImageIndex(index);
-        setIsLightboxOpen(true);
+    const groupedTeachers = useMemo(() => {
+        const term = teacherSearch.toLowerCase().trim();
+        const filtered = teachersInBuilding.filter(t =>
+            (t.name.toLowerCase().includes(term) || t.position.toLowerCase().includes(term)) &&
+            (selectedDept === "all" || t.departmentId === selectedDept)
+        );
+        const groups: Record<string, Teacher[]> = {};
+        filtered.forEach(t => {
+            if (!groups[t.departmentId]) groups[t.departmentId] = [];
+            groups[t.departmentId].push(t);
+        });
+        return groups;
+    }, [teachersInBuilding, teacherSearch, selectedDept]);
+
+    // Handlers
+    const nextImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!location?.images?.length) return;
+        setCurrentImageIndex((prev) => (prev + 1) % location.images!.length);
     };
 
-    const navigateLightbox = (direction: 'next' | 'prev', e?: React.MouseEvent) => {
+    const prevImage = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (!location?.images) return;
-        if (direction === 'next') {
-            setCurrentImageIndex((prev) => (prev + 1) % location.images!.length);
-        } else {
-            setCurrentImageIndex((prev) => (prev - 1 + location.images!.length) % location.images!.length);
-        }
+        if (!location?.images?.length) return;
+        setCurrentImageIndex((prev) => (prev - 1 + location.images!.length) % location.images!.length);
     };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowRight") nextImage();
+            if (e.key === "ArrowLeft") prevImage();
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [location]);
 
     if (!location) return null;
 
-    const galleryImages = location.images && location.images.length > 0 ? location.images : [];
+    const galleryImages = location.images && location.images.length > 0
+        ? location.images
+        : ['default.jpg'];
+
+    const currentImageSrc = `https://zone.pbntc.site/${galleryImages[currentImageIndex]}`;
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+        <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 transition-colors duration-200">
+            <TeacherModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
 
-            {/* ✅ Teacher Modal */}
-            <TeacherModal
-                teacher={selectedTeacher}
-                onClose={() => setSelectedTeacher(null)}
-            />
-
-            {/* ✅ Image Lightbox */}
-            {isLightboxOpen && galleryImages.length > 0 && (
-                <div className="fixed inset-0 z-100 bg-black/95 flex items-center justify-center backdrop-blur-md animate-in fade-in duration-200" onClick={() => setIsLightboxOpen(false)}>
-                    <button onClick={() => setIsLightboxOpen(false)} className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full z-50">
+            {/* 🟢 LIGHTBOX */}
+            {isLightboxOpen && (
+                // แก้ไข class z-[100] -> z-100 ตามคำแนะนำ
+                <div className="fixed inset-0 z-100 bg-black/95 flex items-center justify-center backdrop-blur-md animate-in fade-in duration-200">
+                    <button onClick={() => setIsLightboxOpen(false)} className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 rounded-full text-white z-50 transition-colors">
                         <X size={24} />
                     </button>
-
                     {galleryImages.length > 1 && (
                         <>
-                            <button onClick={(e) => navigateLightbox('prev', e)} className="absolute left-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full z-50">
-                                <ChevronLeft size={32} />
-                            </button>
-                            <button onClick={(e) => navigateLightbox('next', e)} className="absolute right-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full z-50">
-                                <ChevronRight size={32} />
-                            </button>
+                            <button onClick={prevImage} className="absolute left-6 p-4 bg-white/10 hover:bg-amber-500 rounded-full text-white z-50 transition-colors"><ChevronLeft size={32} /></button>
+                            <button onClick={nextImage} className="absolute right-6 p-4 bg-white/10 hover:bg-amber-500 rounded-full text-white z-50 transition-colors"><ChevronRight size={32} /></button>
                         </>
                     )}
-
-                    <div className="relative w-full h-full max-w-6xl max-h-[90vh] flex items-center justify-center p-4">
-                        <img
-                            src={`https://zone.pbntc.site/${galleryImages[currentImageIndex]}`}
-                            alt="Gallery"
-                            className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-black/50 text-white text-sm rounded-full backdrop-blur-sm font-mono">
-                            {currentImageIndex + 1} / {galleryImages.length}
-                        </div>
+                    <img src={currentImageSrc} alt={location.name} className="max-w-[95vw] max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+                    <div className="absolute bottom-8 px-6 py-2 bg-black/50 text-white font-mono text-sm rounded-full backdrop-blur-md border border-white/10">
+                        {currentImageIndex + 1} / {galleryImages.length}
                     </div>
                 </div>
             )}
 
-            {/* 🟢 1. HERO SECTION: รูปเดียว เต็มตา + รหัสตึก */}
-            <div className="relative w-full h-[50vh] md:h-[60vh] bg-slate-900 overflow-hidden group">
+            {/* 🟢 1. HERO SLIDER (แก้ปัญหาบังตึก + ปรับ Class ตาม Standard) */}
+            <section className="relative w-full bg-slate-900 group">
+                {/* แก้ไขความสูงตามคำแนะนำ:
+                   h-[320px] -> h-80
+                   md:h-[480px] -> md:h-120
+                   lg:h-[550px] -> lg:h-137.5
+                */}
+                <div className="relative w-full h-80 md:h-120 lg:h-137.5 overflow-hidden">
+                    <div
+                        className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out"
+                        style={{ backgroundImage: `url('${currentImageSrc}')` }}
+                    ></div>
 
-                {/* Back Button */}
-                <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-                    <Link href="/map" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-black/30 hover:bg-black/50 text-white rounded-full backdrop-blur-md transition-all">
-                        <ArrowLeft size={24} />
-                    </Link>
-                </div>
+                    {/* Gradient ปรับปรุงใหม่:
+                       1. ใช้ bg-linear-to-t (v4 syntax)
+                       2. ปรับความสูงของ Gradient ให้อยู่แค่ 50% ด้านล่าง (h-1/2 bottom-0) เพื่อไม่ให้บังส่วนบนของตึก
+                       3. ไล่สีจากดำสนิท -> ใส เพื่อให้ตัวหนังสืออ่านออกแต่ไม่กินพื้นที่ภาพ
+                    */}
+                    <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
 
-                {/* Main Image */}
-                <div
-                    className="w-full h-full cursor-pointer"
-                    onClick={() => galleryImages.length > 0 && openLightbox(0)}
-                >
-                    {galleryImages.length > 0 ? (
-                        <img
-                            src={`https://zone.pbntc.site/${galleryImages[0]}`}
-                            alt={location.name}
-                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-800">
-                            <Building2 size={64} className="text-slate-600 opacity-50" />
+                    {/* Gradient ด้านบนนิดหน่อยเพื่อกันปุ่ม Back จม */}
+                    <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-slate-950/40 to-transparent pointer-events-none"></div>
+
+                    {/* Top Bar */}
+                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-20">
+                        <Link href="/map" className="flex items-center gap-2 px-4 py-2 bg-slate-950/50 hover:bg-amber-500 hover:text-slate-950 rounded-full text-white text-xs font-black uppercase transition-all border border-white/10 backdrop-blur-md">
+                            <ArrowLeft size={14} /> กลับ
+                        </Link>
+
+                        {galleryImages.length > 1 && (
+                            <div className="hidden md:flex px-3 py-1 bg-black/40 rounded-full text-white text-[10px] font-mono backdrop-blur-md border border-white/10">
+                                {currentImageIndex + 1} / {galleryImages.length}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Navigation Arrows */}
+                    {galleryImages.length > 1 && (
+                        <div className="hidden md:flex absolute inset-x-0 top-1/2 -translate-y-1/2 justify-between px-6 pointer-events-none">
+                            <button onClick={prevImage} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-amber-500 text-white hover:text-black backdrop-blur-md transition-all opacity-0 group-hover:opacity-100"><ChevronLeft size={24} /></button>
+                            <button onClick={nextImage} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-amber-500 text-white hover:text-black backdrop-blur-md transition-all opacity-0 group-hover:opacity-100"><ChevronRight size={24} /></button>
                         </div>
                     )}
 
-                    {/* Hover Hint */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
-                        <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm flex items-center gap-2">
-                            <Maximize2 size={16} /> ดูรูปภาพทั้งหมด
+                    {/* Bottom Info (ปรับ Layout ไม่ให้บังตึก) */}
+                    <div className="absolute bottom-0 left-0 w-full p-4 md:p-10 z-10">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div className="space-y-1 max-w-4xl">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-slate-950 text-[10px] font-black uppercase rounded shadow-lg">
+                                        <Building2 size={12} /> อาคาร: {location.code}
+                                    </span>
+                                    {galleryImages.length > 1 && (
+                                        <span className="md:hidden px-2 py-0.5 bg-black/40 text-white text-[10px] rounded backdrop-blur-md border border-white/10">
+                                            {currentImageIndex + 1}/{galleryImages.length}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* ลดขนาด Font ลงเล็กน้อยเพื่อให้ไม่กินพื้นที่ภาพมากเกินไป */}
+                                <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight drop-shadow-xl py-1">
+                                    {location.name}
+                                </h1>
+                                <p className="text-slate-200 text-xs md:text-sm font-bold flex items-center gap-1.5 opacity-90">
+                                    <MapPin size={14} className="text-amber-500" /> วิทยาลัยเทคนิคเพชรบูรณ์
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => setIsLightboxOpen(true)}
+                                className="self-start md:self-end px-5 py-2 bg-white/10 hover:bg-amber-500 hover:text-slate-950 text-white text-xs font-bold uppercase rounded-xl border border-white/20 backdrop-blur-md transition-all flex items-center gap-2 shrink-0 mb-1"
+                            >
+                                <Maximize2 size={16} /> <span className="hidden sm:inline">เปิดดู</span>รูปขยาย
+                            </button>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                {/* Overlay Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 bg-linear-to-t from-black via-black/70 to-transparent pt-32 pointer-events-none">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div>
-                            {/* Building Code Badge */}
-                            <span className="inline-block px-3 py-1 bg-amber-500 text-slate-900 text-sm font-black uppercase tracking-wider rounded-lg mb-3 shadow-lg shadow-amber-500/20 transform translate-y-1">
-                                อาคาร {location.code}
-                            </span>
+            {/* 🟢 2. MAIN CONTENT (max-w-400 ตามคำแนะนำ) */}
+            <main className="w-full max-w-400 mx-auto px-4 md:px-8 mt-8 space-y-10">
 
-                            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">
-                                {location.name}
-                            </h1>
-                            <p className="text-slate-300 flex items-center gap-1.5 mt-2 text-sm md:text-base">
-                                <MapPin size={16} className="text-amber-400" /> วิทยาลัยเทคนิคเพชรบูรณ์
+                {/* Info & Facilities */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+                    {/* ข้อมูลอาคาร */}
+                    <div className="lg:col-span-8 space-y-4">
+                        <div className="flex items-center gap-2 text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 mb-2">
+                            <Info size={18} className="text-amber-500" />
+                            <h2 className="text-sm font-black uppercase tracking-widest">ข้อมูลอาคาร</h2>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <p className="text-base md:text-lg text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                                {location.description || "อาคารเรียนและปฏิบัติการหลัก รองรับการเรียนการสอนหลากหลายสาขาวิชา พร้อมอุปกรณ์และครุภัณฑ์ที่ทันสมัย เพื่อพัฒนาทักษะวิชาชีพของผู้เรียน"}
                             </p>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            {/* 🟢 2. MAIN CONTENT */}
-            <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10">
-
-                {/* Details Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-4">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            รายละเอียดอาคาร
-                        </h2>
-                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">
-                            {location.description || "ไม่มีข้อมูลรายละเอียดสังเขปสำหรับอาคารนี้"}
-                        </p>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit">
-                        <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <Layers size={18} className="text-purple-600" /> สิ่งอำนวยความสะดวก
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                            {location.facilities && location.facilities.length > 0 ? (
-                                location.facilities.map((fac, i) => (
-                                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                        {fac}
-                                    </span>
-                                ))
-                            ) : (
-                                <span className="text-slate-400 text-sm">- ไม่มีข้อมูล -</span>
+                    {/* สิ่งอำนวยความสะดวก */}
+                    <div className="lg:col-span-4 space-y-4">
+                        <div className="flex items-center gap-2 text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 mb-2">
+                            <Layers size={18} className="text-purple-500" />
+                            <h3 className="text-sm font-black uppercase tracking-widest">สิ่งอำนวยความสะดวก</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-2 content-start">
+                            {location.facilities?.map((fac, i) => (
+                                <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                    <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{fac}</span>
+                                </div>
+                            ))}
+                            {!location.facilities?.length && (
+                                <span className="text-sm text-slate-400 italic px-2">ไม่มีข้อมูล</span>
                             )}
                         </div>
                     </div>
@@ -245,156 +237,109 @@ export default function LocationDetailPage() {
 
                 <div className="h-px w-full bg-slate-200 dark:bg-slate-800"></div>
 
-                {/* 👥 TEACHERS SECTION (GROUPED) */}
-                <div className="space-y-6">
-
-                    {/* Header & Filters */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                {/* Teachers Section */}
+                <section className="space-y-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
+                        <div className="space-y-1">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
+                                <span className="w-2 h-8 bg-amber-500 rounded-full"></span>
                                 บุคลากรประจำอาคาร
                             </h2>
-                            <p className="text-slate-500 text-sm mt-1">รายชื่อครูและเจ้าหน้าที่แยกตามแผนกวิชา</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-bold pl-5">
+                                ค้นหารายชื่อครูและเจ้าหน้าที่ในอาคารนี้
+                            </p>
                         </div>
 
-                        {/* Search & Filter Inputs */}
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                            {/* Search */}
-                            <div className="relative w-full sm:w-56">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                        {/* Search Bar - lg:min-w-150 ตามคำแนะนำ */}
+                        <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 flex-1 lg:flex-none lg:min-w-150">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="ค้นหาชื่อครู..."
-                                    value={teacherSearch}
+                                    placeholder="ค้นหาชื่อครู หรือตำแหน่ง..."
+                                    className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold outline-none focus:border-amber-500 transition-all shadow-sm"
                                     onChange={(e) => setTeacherSearch(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
                             </div>
-
-                            {/* Department Filter */}
-                            <div className="relative w-full sm:w-64">
-                                <select
-                                    value={selectedDept}
-                                    onChange={(e) => setSelectedDept(e.target.value)}
-                                    className="w-full pl-3 pr-8 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer appearance-none truncate"
-                                >
-                                    <option value="all">ทุกแผนกวิชา ({teachersInBuilding.length})</option>
-                                    {availableDepartments.map((dept) => (
-                                        <option key={dept.id} value={dept.id}>
-                                            {DEPARTMENTS[dept.id as keyof typeof DEPARTMENTS]} ({dept.count})
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                    <ChevronRight size={16} className="rotate-90" />
-                                </div>
-                            </div>
+                            <select
+                                className="px-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold outline-none focus:border-amber-500 cursor-pointer shadow-sm sm:w-64"
+                                onChange={(e) => setSelectedDept(e.target.value)}
+                            >
+                                <option value="all">ทุกแผนกวิชา</option>
+                                {availableDepartments.map(dept => (
+                                    <option key={dept.id} value={dept.id}>{DEPARTMENTS[dept.id as keyof typeof DEPARTMENTS]} ({dept.count})</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
-                    {/* Teacher Groups */}
-                    <div className="space-y-8">
-                        {Object.keys(groupedTeachers).length > 0 ? (
-                            Object.entries(groupedTeachers).map(([deptId, teachers]) => {
-                                const DeptIcon = getDepartmentIcon(deptId);
-                                return (
-                                    <div key={deptId} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid gap-8">
+                        {Object.entries(groupedTeachers).map(([deptId, teachers]) => (
+                            <div key={deptId} className="space-y-4">
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 dark:border-slate-800 pb-2">
+                                    {DEPARTMENTS[deptId as keyof typeof DEPARTMENTS]}
+                                </h3>
 
-                                        {/* Department Header */}
-                                        <div className="flex items-center gap-3 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
-                                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
-                                                <DeptIcon size={20} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {teachers.map(teacher => (
+                                        <div
+                                            key={teacher.id}
+                                            onClick={() => setSelectedTeacher(teacher)}
+                                            className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex items-center gap-4 hover:border-amber-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                                        >
+                                            <img
+                                                src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
+                                                className="w-14 h-14 rounded-xl object-cover bg-slate-100 border border-slate-100 dark:border-slate-700"
+                                                alt={teacher.name}
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-amber-600 transition-colors">
+                                                    {teacher.name}
+                                                </h4>
+                                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate uppercase mt-0.5">
+                                                    {teacher.position}
+                                                </p>
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-lg text-slate-800 dark:text-white">
-                                                    {DEPARTMENTS[deptId as keyof typeof DEPARTMENTS] || deptId}
-                                                </h3>
-                                                <p className="text-xs text-slate-500">จำนวน {teachers.length} ท่าน</p>
+                                            <div className="text-slate-300 group-hover:text-amber-500 transition-colors">
+                                                <ExternalLink size={16} />
                                             </div>
                                         </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
 
-                                        {/* Teachers Grid */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {teachers.map((teacher) => (
-                                                <div
-                                                    key={teacher.id}
-                                                    onClick={() => setSelectedTeacher(teacher)}
-                                                    className="group flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
-                                                >
-                                                    {/* Hover Effect Background */}
-                                                    <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                                                    {/* Avatar */}
-                                                    <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 border-2 border-slate-100 dark:border-slate-700 group-hover:border-purple-500 transition-colors z-10">
-                                                        <img
-                                                            src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
-                                                            alt={teacher.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => e.currentTarget.style.display = 'none'}
-                                                        />
-                                                    </div>
-
-                                                    {/* Text Info */}
-                                                    <div className="min-w-0 z-10">
-                                                        <h4 className="font-bold text-slate-800 dark:text-white truncate group-hover:text-purple-700 transition-colors">
-                                                            {teacher.name}
-                                                        </h4>
-                                                        <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold truncate mb-0.5">
-                                                            {teacher.position}
-                                                        </p>
-                                                        {/* Optional Contact Icon */}
-                                                        {teacher.contact?.phone && (
-                                                            <div className="flex items-center gap-1 text-[10px] text-slate-400">
-                                                                <Phone size={10} /> {teacher.contact.phone}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                                <Search size={40} className="mx-auto text-slate-300 mb-3" />
-                                <h3 className="text-slate-900 dark:text-white font-bold">ไม่พบข้อมูล</h3>
-                                <p className="text-slate-500 text-sm">ไม่มีครูที่ตรงกับเงื่อนไขการค้นหา</p>
-                                <button
-                                    onClick={() => { setTeacherSearch(""); setSelectedDept("all"); }}
-                                    className="mt-4 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-purple-600 font-bold hover:bg-purple-50 transition-colors"
-                                >
-                                    ล้างค่าการค้นหา
-                                </button>
+                        {Object.keys(groupedTeachers).length === 0 && (
+                            <div className="py-16 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+                                <Search size={48} className="mx-auto text-slate-300 mb-3 opacity-50" />
+                                <h3 className="text-lg font-black text-slate-400">ไม่พบข้อมูลที่ค้นหา</h3>
                             </div>
                         )}
                     </div>
-                </div>
+                </section>
 
-                {/* 📞 Contact Footer */}
-                <div className="mt-8 bg-linear-to-r from-purple-700 to-indigo-800 rounded-2xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                {/* 🟢 3. CONTACT FOOTER */}
+                <section className="bg-slate-900 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
-                    <div className="flex items-center gap-5 relative z-10">
-                        <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
-                            <Phone size={28} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-xl">ติดต่อสอบถามเพิ่มเติม</h3>
-                            <p className="text-purple-100 text-sm mt-1 opacity-90 max-w-md">
-                                หากต้องการข้อมูลเพิ่มเติมเกี่ยวกับอาคารเรียน หรือติดต่อบุคลากร กรุณาติดต่อส่วนกลาง
-                            </p>
-                        </div>
+                    <div className="text-center sm:text-left relative z-10">
+                        <h2 className="text-lg md:text-xl font-black text-white">ต้องการข้อมูลเพิ่มเติม?</h2>
+                        <p className="text-xs md:text-sm text-slate-400 font-bold mt-1">ติดต่อประชาสัมพันธ์ วิทยาลัยเทคนิคเพชรบูรณ์</p>
                     </div>
                     <a
                         href="tel:056711455"
-                        className="relative z-10 px-8 py-3 bg-white text-purple-900 font-bold rounded-xl hover:bg-purple-50 transition-transform hover:scale-105 shadow-lg active:scale-95 flex items-center gap-2"
+                        className="relative z-10 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs md:text-sm rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 shrink-0"
                     >
-                        <Phone size={18} className="fill-purple-900" /> 056-711455
+                        <Phone size={18} /> 056-711455
                     </a>
-                </div>
+                </section>
+            </main>
 
-            </div>
+            <footer className="w-full py-10 text-center opacity-40">
+                <div className="flex items-center justify-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                    <GraduationCap size={16} /> PBNTC Map Project
+                </div>
+            </footer>
         </div>
     );
 }
