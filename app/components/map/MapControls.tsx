@@ -36,7 +36,7 @@ export default function MapControls({
                         <Search size={20} className="text-slate-400 shrink-0 group-focus-within:text-amber-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="ค้นหาอาคาร, ห้องเรียน..."
+                            placeholder="ค้นหาอาคารและชื่อครูหรือตำแหน่งงาน"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             // เมื่อเริ่มพิมพ์ ให้เปิด Sidebar อัตโนมัติ

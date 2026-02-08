@@ -256,7 +256,7 @@ export default function LocationDetailPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="ค้นหาชื่อครู หรือตำแหน่ง..."
+                                    placeholder="ค้นหาชื่อครู หรือตำแหน่งงาน"
                                     className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold outline-none focus:border-amber-500 transition-all shadow-sm"
                                     onChange={(e) => setTeacherSearch(e.target.value)}
                                 />
