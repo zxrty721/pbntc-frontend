@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+    /* 🔴 1. กำหนดตัวแปรสีกลาง */
+    --color-primary: #991b1b;
+    --color-primary-dark: #7f1d1d;
+    --color-secondary: #f59e0b;
+    --color-secondary-light: #fcd34d;
+    --color-surface: #ffffff;
+    --color-app-bg: #9ec54c;
+
+    /* 🟢 2. ตั้งค่า font-sans ของ Tailwind ให้ชี้มาที่ Noto Sans Thai */
+    --font-sans: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+body {
+    background-color: var(--color-app-bg);
+    color: #1f2937;
+    /* 🟢 3. เปลี่ยนชื่อฟอนต์หลักของเว็บตรงนี้ */
+    font-family:
+        "Noto Sans Thai",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Scrollbar แบบมินิมอล */
+::-webkit-scrollbar {
+    width: 5px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
