@@ -89,9 +89,7 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                         <img src="https://img.pbntc.site/og-pbntc.svg" alt="PBNTC Logo" className="h-8 md:h-11 w-auto transition-transform group-hover:scale-105 shrink-0" />
                         <div className="flex flex-col min-w-0">
                             <h1 className="font-bold text-xs sm:text-base md:text-xl text-slate-900 leading-tight truncate group-hover:text-primary transition-colors">วิทยาลัยเทคนิคเพชรบูรณ์</h1>
-                            <span className="text-[9px] sm:text-[11px] md:text-xs font-bold text-primary tracking-wider uppercase mt-0 md:mt-0.5 leading-none">
-                                PBNTC <span className="text-secondary-dark font-extrabold">MAP</span>
-                            </span>
+                            <span className="text-[9px] sm:text-[11px] md:text-xs font-bold text-primary tracking-wider uppercase mt-0 md:mt-0.5 leading-none">Phetchabun Technical Collage</span>
                         </div>
                     </a>
 
