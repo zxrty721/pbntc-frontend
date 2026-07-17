@@ -39,7 +39,7 @@ export default function TeacherModal({ teacher, onClose }: TeacherModalProps) {
     return (
         /* 🚀 เปลี่ยน transition-all เป็น transition-opacity ลดภาระตอนเปิดปิด */
         <div className={`fixed inset-0 z-100 transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="absolute inset-0 bg-black/60" onClick={onClose}></div>
 
             <div className="fixed inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 md:p-8">
                 <div className="flex min-h-full items-end md:items-center justify-center">

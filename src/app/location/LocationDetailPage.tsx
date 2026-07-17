@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useDeferredValue } from "react";
+import React, { useState, useMemo, useEffect, useDeferredValue } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Phone, Search, X, ChevronLeft, ChevronRight, Maximize2, MapPin, Layers, GraduationCap, Info, ExternalLink, Building2 } from "lucide-react";
 
@@ -13,11 +13,29 @@ interface DeptCount {
     count: number;
 }
 
+/* 🚀 1. สร้าง Component ย่อยสำหรับการ์ดครู และใช้ React.memo เพื่อป้องกันการ Render ซ้ำซ้อนตอนพิมพ์ค้นหา */
+const TeacherCard = React.memo(({ teacher, onClick }: { teacher: Teacher; onClick: () => void }) => {
+    return (
+        <div onClick={onClick} className="group relative bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:bg-primary/5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden">
+            <img src={`https://teacher.pbntc.site/${teacher.id}.jpg`} loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover bg-slate-200 border-2 border-white shadow-sm shrink-0" alt={teacher.name} />
+            <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-black text-slate-800 truncate group-hover:text-primary transition-colors">{teacher.name}</h4>
+                <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5 group-hover:text-primary/70">{teacher.position}</p>
+            </div>
+            <div className="text-slate-300 group-hover:text-primary transition-colors shrink-0">
+                <ExternalLink size={16} />
+            </div>
+        </div>
+    );
+});
+
 export default function LocationDetailPage() {
     const params = useParams();
 
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [teacherSearch, setTeacherSearch] = useState("");
+
+    /* 🚀 2. ใช้ DeferredValue หน่วงเวลาการพิมพ์ ไม่ให้ UI ค้าง */
     const deferredSearch = useDeferredValue(teacherSearch);
     const [selectedDept, setSelectedDept] = useState("all");
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -43,12 +61,25 @@ export default function LocationDetailPage() {
 
     const groupedTeachers = useMemo(() => {
         const term = deferredSearch.toLowerCase().trim();
-        const filtered = teachersInBuilding.filter((t: Teacher) => (t.name.toLowerCase().includes(term) || t.position.toLowerCase().includes(term)) && (selectedDept === "all" || t.departmentId === selectedDept));
+        // 💡 แบ่งคำค้นหาด้วยช่องว่างเช่นเดียวกัน
+        const searchWords = term.split(/\s+/).filter(Boolean);
+
+        const filtered = teachersInBuilding.filter((t: Teacher) => {
+            // 🚀 เอารายละเอียดครูมารวมกัน แล้วเช็คว่าตรงกับคำค้นหาทุกคำหรือไม่
+            const fullTeacherText = `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase();
+            const matchSearch = searchWords.every((word) => fullTeacherText.includes(word));
+
+            const matchDept = selectedDept === "all" || t.departmentId === selectedDept;
+
+            return matchSearch && matchDept;
+        });
+
         const groups: Record<string, Teacher[]> = {};
         filtered.forEach((t: Teacher) => {
             if (!groups[t.departmentId]) groups[t.departmentId] = [];
             groups[t.departmentId].push(t);
         });
+
         return groups;
     }, [teachersInBuilding, deferredSearch, selectedDept]);
 
@@ -82,7 +113,7 @@ export default function LocationDetailPage() {
         <div className="flex flex-col min-h-screen pb-20 transition-colors duration-200 font-sans overflow-x-hidden bg-primary-dark">
             <TeacherModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
 
-            {/* LIGHTBOX (ลบ Blur ออกตามรีเควส ใช้สีดำทึบ 95% แทน) */}
+            {/* LIGHTBOX (ไม่มี Backdrop Blur ตามที่กำหนด) */}
             {isLightboxOpen && (
                 <div className="fixed inset-0 bg-black/95 flex items-center justify-center animate-in fade-in duration-200 z-100">
                     <button onClick={() => setIsLightboxOpen(false)} className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-primary rounded-full text-white z-50 transition-colors">
@@ -110,7 +141,7 @@ export default function LocationDetailPage() {
                 <div className="relative w-full h-[45vh] min-h-87.5 flex flex-col justify-between">
                     <div className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out" style={{ backgroundImage: `url('${currentImageSrc}')` }}></div>
 
-                    {/* 🎨 แก้ไขรูปภาพ: ใช้สีดำโปร่งใสเพื่อให้สีรูปธรรมชาติ และไล่สีแดงเฉพาะขอบล่างให้เนียนไปกับพื้นหลัง */}
+                    {/* เงาดำบางๆ 40% และไล่สีแดงที่ขอบล่างให้เข้ากับพื้นหลัง */}
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-primary-dark to-transparent"></div>
 
@@ -204,16 +235,8 @@ export default function LocationDetailPage() {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {teachers.map((teacher) => (
-                                        <div key={teacher.id} onClick={() => setSelectedTeacher(teacher)} className="group relative bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:bg-primary/5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden">
-                                            <img src={`https://teacher.pbntc.site/${teacher.id}.jpg`} loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover bg-slate-200 border-2 border-white shadow-sm shrink-0" alt={teacher.name} />
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-black text-slate-800 truncate group-hover:text-primary transition-colors">{teacher.name}</h4>
-                                                <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5 group-hover:text-primary/70">{teacher.position}</p>
-                                            </div>
-                                            <div className="text-slate-300 group-hover:text-primary transition-colors shrink-0">
-                                                <ExternalLink size={16} />
-                                            </div>
-                                        </div>
+                                        /* 🚀 3. เรียกใช้งาน TeacherCard ตรงนี้แทน div เดิม */
+                                        <TeacherCard key={teacher.id} teacher={teacher} onClick={() => setSelectedTeacher(teacher)} />
                                     ))}
                                 </div>
                             </div>
@@ -227,7 +250,6 @@ export default function LocationDetailPage() {
                     </div>
                 </div>
 
-                {/* 🎨 แก้ไขกล่องติดต่อ: เปลี่ยนเป็นสีขาว (bg-surface) เพื่อลดความแดง และเบลนด์เข้ากับกล่องข้อมูลด้านบน */}
                 <section className="bg-surface rounded-3xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-[0_10px_30px_rgba(0,0,0,0.2)] relative overflow-hidden w-full">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
                     <div className="text-center sm:text-left relative z-10 w-full">
@@ -239,6 +261,12 @@ export default function LocationDetailPage() {
                     </a>
                 </section>
             </main>
+
+            <footer className="w-full py-10 mt-10 text-center relative z-20">
+                <div className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-surface rounded-full text-primary-dark text-xs font-black uppercase tracking-widest shadow-md">
+                    <GraduationCap size={16} className="text-primary" /> PBNTC Map Project
+                </div>
+            </footer>
         </div>
     );
 }

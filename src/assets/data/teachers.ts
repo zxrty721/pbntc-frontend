@@ -1,14 +1,50 @@
 import type { Teacher } from "../types";
 
+// รายการคำนำหน้าที่รองรับ เรียงจากยาว/เฉพาะเจาะจงไปหาสั้น เพื่อกันจับคู่ผิด (เช่น "นางสาว" ต้องเช็คก่อน "นาง")
+// key = คำนำหน้าที่อาจพบในชื่อ (รวมรูปย่อ), value = คำนำหน้าตัวเต็มที่ต้องการเก็บ
+const TITLE_MAP: [string, string][] = [
+    ["นางสาว", "นางสาว"],
+    ["ว่าที่ร้อยตรี", "ว่าที่ร้อยตรี"],
+    ["ว่าที่ร.ต.", "ว่าที่ร้อยตรี"], // รูปย่อ -> ตัวเต็ม
+    ["นาย", "นาย"],
+    ["นาง", "นาง"],
+];
+
+// แยกชื่อเต็มออกเป็น คำนำหน้า (ตัวเต็ม) / ชื่อ / นามสกุล
+const splitName = (fullName: string): { title: string; firstName: string; lastName: string } => {
+    let title = "";
+    let rest = fullName.trim();
+
+    for (const [prefix, fullTitle] of TITLE_MAP) {
+        if (rest.startsWith(prefix)) {
+            title = fullTitle;
+            rest = rest.slice(prefix.length).trim();
+            break;
+        }
+    }
+
+    const parts = rest.split(/\s+/).filter(Boolean);
+    const firstName = parts[0] ?? "";
+    const lastName = parts.slice(1).join(" ");
+
+    return { title, firstName, lastName };
+};
+
 // Helper เพื่อสร้าง Data ได้สั้นลง
-const createTeacher = (id: string, name: string, departmentId: string, position: string, phone: string = "", locationIds: (string | number)[] = []): Teacher => ({
-    id,
-    name,
-    departmentId,
-    position,
-    locationIds,
-    contact: { phone },
-});
+const createTeacher = (id: string, name: string, departmentId: string, position: string, phone: string = "", locationIds: (string | number)[] = []): Teacher => {
+    const { title, firstName, lastName } = splitName(name);
+    return {
+        id,
+        name,
+        title,
+        firstName,
+        lastName,
+        departmentId,
+        position,
+        locationIds,
+        contact: { phone },
+    };
+};
 
 export const teachersData: Record<string, Teacher> = {
     // --- ผู้บริหาร ---
