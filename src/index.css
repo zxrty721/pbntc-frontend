@@ -7,7 +7,7 @@
     --color-secondary: #f59e0b;
     --color-secondary-light: #fcd34d;
     --color-surface: #ffffff;
-    --color-app-bg: #9ec54c;
+    --color-app-bg: #a0f211;
 
     /* 🟢 2. ตั้งค่า font-sans ของ Tailwind ให้ชี้มาที่ Noto Sans Thai */
     --font-sans: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

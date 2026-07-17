@@ -66,24 +66,32 @@ export default function App() {
                 <TransformWrapper initialScale={1} minScale={0.5} maxScale={4} centerOnInit={true} wheel={{ step: 0.1 }}>
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>
-                            <div className="absolute bottom-8 right-4 md:right-8 flex flex-col gap-2 z-20">
-                                <button onClick={() => zoomIn()} className="w-10 h-10 md:w-12 md:h-12 bg-surface text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl shadow-lg border border-slate-200 font-bold transition-colors">
-                                    +
-                                </button>
-                                <button onClick={() => zoomOut()} className="w-10 h-10 md:w-12 md:h-12 bg-surface text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl shadow-lg border border-slate-200 font-bold transition-colors">
-                                    -
-                                </button>
+                            {/* 🎛️ MAP CONTROLS: ปรับดีไซน์ใหม่ให้คลีนและขนาดพอดีกับมือถือ */}
+                            <div className="absolute bottom-4 right-3 md:bottom-8 md:right-8 flex flex-col gap-2 md:gap-3 z-20">
+                                {/* กลุ่มปุ่ม Zoom In/Out */}
+                                <div className="flex flex-col bg-white rounded-xl shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden">
+                                    <button onClick={() => zoomIn()} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-slate-700 hover:text-primary hover:bg-slate-50 font-medium transition-colors border-b border-slate-100 active:bg-slate-100">
+                                        <span className="text-lg md:text-xl leading-none">+</span>
+                                    </button>
+                                    <button onClick={() => zoomOut()} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-slate-700 hover:text-primary hover:bg-slate-50 font-medium transition-colors active:bg-slate-100">
+                                        <span className="text-xl md:text-2xl leading-none">-</span>
+                                    </button>
+                                </div>
+
+                                {/* ปุ่ม Reset */}
                                 <button
                                     onClick={() => {
                                         resetTransform();
                                         handleBackgroundClick();
                                     }}
-                                    className="px-2 py-2 bg-primary-dark text-white hover:bg-primary text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all mt-2"
+                                    className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center bg-primary-dark text-white hover:bg-primary text-[9px] md:text-[11px] font-bold rounded-xl shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] active:scale-95 transition-all tracking-wider"
                                 >
-                                    Reset
+                                    RESET
                                 </button>
-                                <button onClick={toggleFullscreen} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-surface text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl shadow-lg border border-slate-200 mt-1 transition-colors">
-                                    {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+
+                                {/* ปุ่ม Fullscreen */}
+                                <button onClick={toggleFullscreen} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center bg-white text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] border border-slate-200 transition-colors active:scale-95">
+                                    {isFullscreen ? <Minimize size={16} className="md:w-5 md:h-5" /> : <Maximize size={16} className="md:w-5 md:h-5" />}
                                 </button>
                             </div>
 
@@ -101,44 +109,64 @@ export default function App() {
 
             {selectedLocation && (
                 <>
-                    <div className="fixed inset-0 z-30 md:hidden" style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }} onClick={() => setSelectedLocation(null)}></div>
+                    {/* 🌑 พื้นหลังทึบสำหรับมือถือ */}
+                    <div className="fixed inset-0 z-30 md:hidden transition-opacity duration-300 backdrop-blur-sm" style={{ backgroundColor: "rgba(15, 23, 42, 0.4)" }} onClick={() => setSelectedLocation(null)}></div>
 
-                    <div className="absolute bottom-3 left-3 right-3 md:bottom-6 md:left-1/2 md:-translate-x-1/2 z-40 bg-surface rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-6 max-h-[65vh] md:max-h-[80vh] flex flex-col w-auto md:w-full md:max-w-md">
-                        <div className="h-24 sm:h-28 md:h-40 bg-slate-200 relative shrink-0">
+                    {/* 📋 กล่องรายละเอียด (Responsive) */}
+                    <div
+                        className="fixed z-40 bg-surface overflow-y-auto custom-scrollbar transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in border border-slate-200
+                                                /* 📱 มือถือ: เป็น Floating Card มี Margin รอบด้าน (bottom-4, left-4, right-4) */
+                                                bottom-4 left-4 right-4 rounded-3xl max-h-[calc(100dvh-130px)] slide-in-from-bottom-8
+                                                /* 💻 คอมพิวเตอร์: การ์ดลอยมุมขวาบน */
+                                                md:bottom-auto md:top-32 md:right-8 md:left-auto md:w-95 md:rounded-2xl md:max-h-[calc(100vh-140px)] md:slide-in-from-right-8"
+                    >
+                        {/* 🖼️ ส่วนหัว: รูปภาพและ Overlay (ปลดล็อคให้เลื่อนไปพร้อมกับเนื้อหา) */}
+                        <div className="h-56 sm:h-64 md:h-56 bg-slate-200 relative w-full">
                             {selectedLocation.images?.[0] ? (
-                                <img src={`https://zone.pbntc.site/${selectedLocation.images[0]}`} alt={selectedLocation.name} className="w-full h-full object-cover" />
+                                <>
+                                    <img src={`https://zone.pbntc.site/${selectedLocation.images[0]}`} alt={selectedLocation.name} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent"></div>
+                                </>
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                    <Building2 size={28} />
+                                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                                    <Building2 size={48} className="opacity-40" />
                                 </div>
                             )}
-                            <button onClick={() => setSelectedLocation(null)} className="absolute top-2 right-2 p-1.5 text-white rounded-full transition-colors hover:scale-110 shadow-md" style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}>
-                                <X size={14} />
+
+                            {/* ❌ ปุ่มปิด */}
+                            <button onClick={() => setSelectedLocation(null)} className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors shadow-lg active:scale-95 z-10">
+                                <X size={18} strokeWidth={2.5} />
                             </button>
+
+                            {/* 📌 ชื่อและรหัสอาคาร (ทับบนรูป) */}
+                            <div className="absolute bottom-4 left-5 right-5 text-white z-10">
+                                <span className="inline-block px-2.5 py-1 bg-secondary text-primary-dark text-xs font-extrabold uppercase tracking-widest rounded-md mb-2 shadow-sm">{selectedLocation.code}</span>
+                                <h3 className="text-xl md:text-2xl font-bold leading-tight drop-shadow-md">{selectedLocation.name}</h3>
+                            </div>
                         </div>
 
-                        <div className="p-3 md:p-4 overflow-y-auto flex-1 flex flex-col gap-2 md:gap-3">
-                            <div>
-                                <span className="inline-block px-1.5 py-0.5 bg-secondary text-primary-dark text-xs font-bold uppercase rounded mb-0.5">{selectedLocation.code}</span>
-                                <h3 className="text-sm md:text-lg font-bold text-slate-900 leading-tight">{selectedLocation.name}</h3>
-                            </div>
-
-                            {selectedLocation.description && <p className="text-xs md:text-sm text-slate-600 line-clamp-2 leading-relaxed">{selectedLocation.description}</p>}
+                        {/* 📝 ส่วนเนื้อหา */}
+                        <div className="p-5 md:p-6 space-y-5 bg-surface">
+                            {selectedLocation.description && <p className="text-sm text-slate-600 leading-relaxed">{selectedLocation.description}</p>}
 
                             {selectedLocation.facilities && selectedLocation.facilities.length > 0 && (
-                                <div className="flex flex-wrap gap-1 pt-0.5">
-                                    {selectedLocation.facilities.map((facility, index) => (
-                                        <span key={index} className="px-1.5 py-1.5 bg-primary-dark text-white rounded text-xs font-medium border border-slate-200/60 leading-none">
-                                            {facility}
-                                        </span>
-                                    ))}
+                                <div className="space-y-2.5">
+                                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        สิ่งอำนวยความสะดวก <div className="h-px bg-slate-200 flex-1"></div>
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedLocation.facilities.map((facility, index) => (
+                                            <span key={index} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold border border-slate-200/60">
+                                                {facility}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            <div className="pt-2 mt-auto border-t border-slate-100 flex justify-end">
-                                {/* 🟢 เปลี่ยนปุ่มเดิมเป็น <a> tag ธรรมดา เพื่อแก้บัคของ Vite คราวนี้วิ่งไปหน้าดีเทลได้ฉลุย ไม่มีวันพังแน่นอนครับ */}
-                                <a href={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-1.5 w-full md:w-auto px-3 py-2 md:py-2.5 bg-primary hover:bg-primary-dark text-white text-xs md:text-sm font-bold rounded-xl transition-all active:scale-95 shadow-sm text-center">
-                                    ดูรายละเอียดทั้งหมด <ArrowRight size={14} />
+                            <div className="pt-2 pb-2">
+                                <a href={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] active:scale-[0.98]">
+                                    ดูรายละเอียดทั้งหมด <ArrowRight size={18} />
                                 </a>
                             </div>
                         </div>

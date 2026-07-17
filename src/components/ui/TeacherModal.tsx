@@ -37,77 +37,83 @@ export default function TeacherModal({ teacher, onClose }: TeacherModalProps) {
     };
 
     return (
-        <div className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0"}`}>
-            <div className="absolute inset-0 bg-slate-950/90" onClick={onClose}></div>
+        /* 🚀 เปลี่ยน transition-all เป็น transition-opacity ลดภาระตอนเปิดปิด */
+        <div className={`fixed inset-0 z-100 transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
 
-            <div className={`relative bg-white dark:bg-slate-900 w-full max-w-7xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] transform transition-transform duration-500 ${isVisible ? "translate-y-0" : "translate-y-12"}`}>
-                <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-red-500 hover:text-white rounded-full text-slate-600 transition-all hidden md:flex">
-                    <X size={24} />
-                </button>
+            <div className="fixed inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 md:p-8">
+                <div className="flex min-h-full items-end md:items-center justify-center">
+                    {/* 🚀 เปลี่ยน transition-all เป็น transition-transform ป้องกันการคำนวณ CSS หนักๆ */}
+                    {/* 🎨 ตัว Modal เป็นกล่องขาว (bg-surface) จะเด่นมากๆ เมื่อพื้นหลังเว็บเป็นสีเข้ม */}
+                    <div className={`relative bg-surface w-full max-w-[calc(100vw-2rem)] md:max-w-5xl rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20 transform transition-transform duration-300 flex flex-col md:flex-row overflow-hidden ${isVisible ? "translate-y-0 scale-100" : "translate-y-12 scale-95"}`}>
+                        <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2.5 bg-slate-100 hover:bg-primary hover:text-white rounded-full text-slate-500 transition-colors hidden md:flex shadow-sm">
+                            <X size={24} strokeWidth={2.5} />
+                        </button>
 
-                <div className="w-full md:w-[42%] h-72 md:h-auto bg-slate-200 dark:bg-slate-800 shrink-0 relative">
-                    {!imageError ? (
-                        <img src={`https://teacher.pbntc.site/${teacher.id}.jpg`} alt={teacher.name} className="w-full h-full object-cover object-top" onError={() => setImageError(true)} />
-                    ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                            <User size={80} className="opacity-20" />
-                        </div>
-                    )}
-                    <div className="absolute inset-0 bg-linear-to-t from-white dark:from-slate-900 via-transparent to-transparent md:hidden"></div>
-                    <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2 bg-slate-950/60 text-white rounded-full md:hidden">
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className="flex-1 p-8 md:p-12 overflow-y-auto bg-white dark:bg-slate-900">
-                    <div className="space-y-10">
-                        <div className="space-y-3">
-                            <div className="inline-block px-3 py-1 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-xs font-black uppercase tracking-widest">{deptName}</div>
-                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white leading-[1.1]">{teacher.name}</h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-xl font-bold italic">{teacher.position}</p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">ช่องทางการติดต่อ</h4>
-                            <div className="flex items-center gap-5 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 group">
-                                <div className="w-14 h-14 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center text-amber-600 shrink-0 border border-slate-200 dark:border-slate-600">
-                                    <Phone size={28} />
+                        <div className="w-full md:w-[40%] h-[40vh] min-h-62.5 max-h-87.5 md:h-auto md:max-h-none md:min-h-125 bg-slate-100 shrink-0 relative border-b md:border-b-0 md:border-r border-slate-200">
+                            {!imageError ? (
+                                /* 🚀 เพิ่ม loading="lazy" ให้เปิด modal ได้ปุ๊บปั๊บ ไม่ต้องรอโหลดรูปเสร็จ */
+                                <img src={`https://teacher.pbntc.site/${teacher.id}.jpg`} loading="lazy" decoding="async" alt={teacher.name} className="w-full h-full object-cover object-top" onError={() => setImageError(true)} />
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300">
+                                    <User size={80} className="opacity-40" />
                                 </div>
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase mb-1">เบอร์โทรศัพท์</p>
-                                    <a href={`tel:${teacher.contact?.phone || ""}`} className="text-2xl font-black text-slate-900 dark:text-white hover:text-amber-600 transition-colors">
-                                        {teacher.contact?.phone || "ไม่มีข้อมูล"}
-                                    </a>
+                            )}
+                            <div className="absolute inset-0 bg-linear-to-t from-surface via-transparent to-transparent md:hidden"></div>
+
+                            <button onClick={onClose} className="absolute top-4 right-4 z-50 p-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full md:hidden transition-colors shadow-lg active:scale-95">
+                                <X size={20} strokeWidth={2.5} />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 p-5 sm:p-8 md:p-10 bg-surface">
+                            <div className="space-y-6 md:space-y-8 w-full">
+                                <div className="space-y-3">
+                                    <div className="inline-block px-3 py-1.5 rounded-lg bg-secondary/20 text-primary-dark text-xs font-black uppercase tracking-widest border border-secondary/30">{deptName}</div>
+                                    <h2 className="text-2xl md:text-4xl font-black text-slate-900 leading-tight wrap-break-word">{teacher.name}</h2>
+                                    <p className="text-primary text-lg font-bold">{teacher.position}</p>
                                 </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 border-b border-slate-100 pb-2">ช่องทางการติดต่อ</h4>
+                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 group hover:border-primary/30 transition-colors w-full overflow-hidden">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                            <Phone size={20} className="md:w-6 md:h-6" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-0.5 truncate">เบอร์โทรศัพท์</p>
+                                            <a href={`tel:${teacher.contact?.phone || ""}`} className="text-lg md:text-xl font-black text-slate-800 hover:text-primary transition-colors truncate block">
+                                                {teacher.contact?.phone || "ไม่มีข้อมูล"}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {teacher.locationIds && teacher.locationIds.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 border-b border-slate-100 pb-2">สถานที่ประจำ / ห้องพักครู</h4>
+                                        <div className="grid gap-3">
+                                            {teacher.locationIds.map((locId, idx) => {
+                                                const locInfo = getLocationInfo(locId);
+                                                return (
+                                                    <button key={idx} type="button" onClick={onClose} className="w-full text-left flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:border-primary hover:bg-primary/5 hover:shadow-md transition-all group overflow-hidden">
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                            <div className="p-2 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                                                                <MapPin size={18} />
+                                                            </div>
+                                                            <span className="font-black text-slate-800 text-sm md:text-base group-hover:text-primary-dark transition-colors truncate">{locInfo.name}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 text-xs font-black text-slate-400 group-hover:text-primary shrink-0 ml-2">
+                                                            <span className="hidden sm:inline">อาคาร:</span> {locInfo.code} <ExternalLink size={14} />
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
-
-                        {teacher.locationIds && teacher.locationIds.length > 0 && (
-                            <div className="space-y-4">
-                                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">สถานที่ประจำ / ห้องพักครู</h4>
-                                <div className="grid gap-3">
-                                    {teacher.locationIds.map((locId, idx) => {
-                                        const locInfo = getLocationInfo(locId);
-                                        return (
-                                            <button key={idx} type="button" onClick={onClose} className="w-full text-left flex items-center justify-between p-5 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl hover:border-amber-500 transition-all group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                                                        <MapPin size={22} />
-                                                    </div>
-                                                    <span className="font-black text-slate-800 dark:text-slate-100 text-base">{locInfo.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs font-black text-slate-400 group-hover:text-amber-500">
-                                                    อาคาร: {locInfo.code} <ExternalLink size={14} />
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <div className="mt-12 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">PBNTC IT DEPARTMENT STAFF DIRECTORY</p>
                     </div>
                 </div>
             </div>

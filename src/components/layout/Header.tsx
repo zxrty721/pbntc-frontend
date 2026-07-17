@@ -12,26 +12,26 @@ interface HeaderProps {
 export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSidebarOpen, showPins, setShowPins }: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 w-full z-50 bg-surface shadow-md">
-            {/* TOP BAR: ปรับให้รองรับ iframe ที่แคบมากๆ ด้วยการซ่อนอีเมลรองในจอเล็ก */}
-            <div className="w-full bg-primary-dark text-white text-[11px] md:text-xs py-2 px-3 md:px-6 flex justify-between items-center border-b border-primary/40">
+            {/* TOP BAR: ปรับให้รองรับ iframe ที่แคบมากๆ */}
+            <div className="w-full bg-primary-dark text-white text-[11px] md:text-xs py-2 px-3 md:px-6 flex justify-between items-center border-b border-primary/40 gap-2">
                 {/* 🟢 ฝั่งซ้าย: ข้อมูลติดต่อ */}
-                <div className="flex items-center gap-3 md:gap-5 shrink-0">
+                <div className="flex items-center gap-3 md:gap-5 shrink min-w-0">
                     {/* เบอร์โทรศัพท์ */}
-                    <a href="tel:056711455" className="flex items-center gap-1 hover:text-secondary transition-colors font-medium" title="โทรออกวิทยาลัยเทคนิคเพชรบูรณ์">
+                    <a href="tel:056711455" className="flex items-center gap-1 hover:text-secondary transition-colors font-medium shrink-0" title="โทรออกวิทยาลัยเทคนิคเพชรบูรณ์">
                         <Phone size={12} className="text-secondary shrink-0" />
                         <span>
                             <span className="hidden sm:inline">โทร: </span>056-711455
                         </span>
                     </a>
 
-                    {/* อีเมลที่ 1 (แสดงข้อความเสมอ ไม่ซ่อนในมือถือแล้ว) */}
-                    <a href="mailto:pbntc212@pbntc.ac.th" className="flex items-center gap-1 hover:text-secondary transition-colors" title="ส่งอีเมลหา pbntc212@pbntc.ac.th">
+                    {/* อีเมลที่ 1 (เพิ่ม min-w-0 และ truncate เผื่อจอเล็กจัดๆ จะได้บีบเป็น ... แทนการตกขอบ) */}
+                    <a href="mailto:pbntc212@pbntc.ac.th" className="flex items-center gap-1 hover:text-secondary transition-colors min-w-0" title="ส่งอีเมลหา pbntc212@pbntc.ac.th">
                         <Mail size={12} className="text-secondary shrink-0" />
-                        <span>pbntc212@pbntc.ac.th</span>
+                        <span className="truncate">pbntc212@pbntc.ac.th</span>
                     </a>
 
                     {/* อีเมลที่ 2 (ซ่อนในจอมือถือ/iframe แคบๆ แสดงเฉพาะจอคอม lg ขึ้นไป) */}
-                    <div className="hidden lg:flex items-center gap-1">
+                    <div className="hidden lg:flex items-center gap-1 shrink-0">
                         <span className="text-white/20 mr-1">|</span>
                         <a href="mailto:Phettech212@hotmail.com" className="flex items-center gap-1 hover:text-secondary transition-colors" title="ส่งอีเมลหา Phettech212@hotmail.com">
                             <Mail size={12} className="text-secondary shrink-0" />
@@ -44,8 +44,8 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                 <div className="flex items-center gap-2 md:gap-4 shrink-0">
                     <span className="hidden xl:inline text-[10px] uppercase font-bold tracking-widest text-white/60 mr-1">ติดตามเรา:</span>
 
-                    {/* โซเชียลหลักวิทยาลัย */}
-                    <div className="flex items-center gap-2 md:gap-3 border-r border-white/20 pr-2 md:pr-3">
+                    {/* โซเชียลหลักวิทยาลัย (ใช้ min-[480px]:flex เพื่อซ่อนทันทีถ้าจอเล็กกว่า 480px ป้องกันการกินพื้นที่อีเมล) */}
+                    <div className="hidden min-[480px]:flex items-center gap-2 md:gap-3 border-r border-white/20 pr-2 md:pr-3">
                         <a target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/pbntc212/" className="hover:text-blue-400 transition-colors p-0.5" title="Facebook วิทยาลัย">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -70,6 +70,7 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                         </a>
                     </div>
 
+                    {/* ปุ่มผู้จัดทำ (แสดงเสมอ) */}
                     <a target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/she.riff.770099/" className="flex items-center gap-1 bg-white/10 hover:bg-secondary hover:text-primary-dark px-2 py-0.5 rounded text-[10px] md:text-xs font-semibold transition-all" title="ติดต่อผู้จัดทำระบบ">
                         <User size={11} className="text-secondary group-hover:text-primary-dark shrink-0" />
                         <span className="hidden sm:inline">ผู้จัดทำ</span>
@@ -77,10 +78,10 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                 </div>
             </div>
 
-            {/* 🔴 MAIN NAVBAR: เพิ่ม flex-1 และ min-w-0 เพื่อให้การทำ Truncate ทำงานได้ดีที่สุดใน Iframe */}
+            {/* 🔴 MAIN NAVBAR */}
             <div className="w-full bg-white border-b border-slate-200 py-3 md:py-0 md:h-20 px-3 md:px-6 flex items-center">
                 <div className="flex items-center justify-between gap-2 md:gap-4 w-full min-w-0">
-                    {/* ส่วนชื่อวิทยาลัยและแผนที่ (ใช้ flex-1 เพื่อให้บีบตัวได้) */}
+                    {/* ส่วนชื่อวิทยาลัยและแผนที่ */}
                     <a href="https://pbntc.ac.th/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 group">
                         <img src="https://img.pbntc.site/og-pbntc.svg" alt="PBNTC Logo" className="h-8 md:h-11 w-auto transition-transform group-hover:scale-105 shrink-0" />
                         <div className="flex flex-col min-w-0">
@@ -89,9 +90,9 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                         </div>
                     </a>
 
-                    {/* ส่วนของแผงควบคุมและแถบค้นหา (บังคับไม่ให้บีบตัวด้วย shrink-0) */}
+                    {/* ส่วนของแผงควบคุมและแถบค้นหา */}
                     <div className="flex items-center gap-1 md:gap-2 bg-primary p-1 md:p-1.5 rounded-full border border-primary-dark shrink-0">
-                        {/* ช่องค้นหา ปรับ width ให้เล็กลงนิดนึงในหน้าจอมือถือเพื่อให้โลโก้มีที่อยู่ */}
+                        {/* ช่องค้นหา */}
                         <div className="relative w-20 sm:w-32 md:w-64 lg:w-80 focus-within:w-36 sm:focus-within:w-48 md:focus-within:w-72 h-8 md:h-9 rounded-full bg-white flex items-center px-2 md:px-3 border border-slate-200 focus-within:border-secondary transition-all duration-300">
                             <Search size={14} className="text-slate-400 shrink-0 mr-1 md:mr-1.5" />
                             <input type="text" placeholder="ค้นหาอาคาร..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setSidebarOpen(true)} className="w-full h-full bg-transparent border-none outline-none pr-5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 truncate" />
