@@ -130,12 +130,12 @@ export default function App() {
         <div ref={mapContainerRef} className={`w-full h-screen flex flex-col overflow-hidden font-sans relative transition-colors duration-500 ${isDimmed ? "bg-slate-200" : "bg-app-bg"}`}>
             <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} showPins={showPins} setShowPins={setShowPins} />
 
-            {/* 🚀 ตีขอบเขตแบบ Hardcode ให้แผนที่พอดีจอเป๊ะๆ เริ่มใต้ Header ทันที ป้องกันแผนที่ทะลุไปใต้ขอบและแก้ปัญหาการซูมที่เพี้ยน */}
             <div className="absolute top-15 md:top-28 bottom-0 left-0 right-0 z-0 overflow-hidden">
-                <TransformWrapper initialScale={1} minScale={0.5} maxScale={4} centerOnInit={true} wheel={{ step: 0.1 }}>
+                {/* 🚀 ปรับ initialScale เป็น 0.5 สำหรับมือถือ เพื่อให้ซูมออกสุดๆ เห็นแผนที่กว้างๆ */}
+                <TransformWrapper initialScale={isMobile ? 0.5 : 1} minScale={0.5} maxScale={4} centerOnInit={true} wheel={{ step: 0.1 }}>
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>
-                            <div className="absolute bottom-4 right-3 md:bottom-8 md:right-8 flex flex-col gap-2 md:gap-3 z-20">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0 md:bottom-8 md:right-8 flex flex-col gap-2 md:gap-3 z-20">
                                 <div className="flex flex-col bg-white rounded-xl shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden">
                                     <button onClick={() => zoomIn()} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-slate-700 hover:text-primary hover:bg-slate-50 font-medium transition-colors border-b border-slate-100 active:bg-slate-100">
                                         <span className="text-lg md:text-xl leading-none">+</span>
@@ -159,7 +159,6 @@ export default function App() {
                             </div>
 
                             <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
-                                {/* 🚀 ลบ Padding ภายในออกให้หมด เพื่อให้การคำนวณ Scale ของไลบรารีทำงานสมบูรณ์ 100% ไม่มีขอบโหว่ */}
                                 <div className="relative flex items-center justify-center cursor-grab active:cursor-grabbing p-4 md:p-8" style={{ width: "max-content", height: "max-content", minWidth: "100%", minHeight: "100%" }} onClick={handleBackgroundClick}>
                                     <div onClick={(e) => e.stopPropagation()}>
                                         <MapVisual searchTerm={deferredSearch} selectedLocation={selectedLocation} matchedIds={matchedIds} showPins={showPins} onSelect={handleSelectLocation} isMobile={isMobile} />
@@ -171,22 +170,16 @@ export default function App() {
                 </TransformWrapper>
             </div>
 
-            {/* 🚀 GLOW & CARD SECTION (ปรับขนาดใหญ่จุใจ + ปุ่ม X ติดหนึบไม่เลื่อนหาย) */}
             {selectedLocation && (
                 <>
-                    {/* เงาดำมืดด้านหลัง */}
                     <div className="fixed inset-0 z-50 md:hidden transition-opacity duration-300 bg-slate-900/50 backdrop-blur-2xs" onClick={() => setSelectedLocation(null)}></div>
 
-                    {/* กล่องหลัก: ขยายขนาดใหญ่ขึ้น (max-h-[85vh], w-[calc(100%-1.5rem)]) + ใช้ flex flex-col เพื่อล็อกปุ่ม X */}
                     <div className="fixed z-60 bg-surface overflow-hidden flex flex-col transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in zoom-in-95 border border-slate-200 top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-1.5rem)] max-w-sm sm:max-w-md rounded-3xl max-h-[85vh] md:top-32 md:right-8 md:left-auto md:bottom-auto md:translate-x-0 md:translate-y-0 md:w-95 md:rounded-2xl md:max-h-[calc(100vh-140px)] md:slide-in-from-right-8">
-                        {/* 🔴 ปุ่ม X ลอยติดหนึบ (Always Visible / Sticky) อยู่มุมขวาบนเสมอ ไม่เลื่อนตามเนื้อหา */}
                         <button onClick={() => setSelectedLocation(null)} aria-label="ปิดหน้าต่าง" className="absolute top-3.5 right-3.5 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full transition-all shadow-md active:scale-95 z-30 backdrop-blur-xs border border-white/20">
                             <X size={18} strokeWidth={2.5} />
                         </button>
 
-                        {/* 🟢 พื้นที่เนื้อหาที่เลื่อนได้ (Scrollable Content Area) */}
                         <div className="overflow-y-auto custom-scrollbar flex-1 w-full">
-                            {/* ส่วนรูปภาพด้านบน */}
                             <div className="h-56 sm:h-64 md:h-56 bg-slate-200 relative w-full shrink-0">
                                 {selectedLocation.images?.[0] ? (
                                     <>
@@ -205,7 +198,6 @@ export default function App() {
                                 </div>
                             </div>
 
-                            {/* ส่วนคำอธิบายและปุ่มกด */}
                             <div className="p-5 md:p-6 space-y-5 bg-surface">
                                 {selectedLocation.description && <p className="text-sm text-slate-600 leading-relaxed">{selectedLocation.description}</p>}
 
