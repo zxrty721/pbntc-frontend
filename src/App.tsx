@@ -7,7 +7,7 @@ import MapSidebar from "./components/map/MapSidebar";
 import MapVisual from "./components/map/MapVisual";
 import TeacherModal from "./components/ui/TeacherModal";
 import { locations } from "./assets/data/locations";
-import { teachersData } from "./assets/data/teachers"; // 🚀 1. Import ข้อมูลอาจารย์เข้ามาใช้งาน
+import { teachersData } from "./assets/data/teachers";
 import type { MapLocation, Teacher } from "./assets/types";
 
 export default function App() {
@@ -24,39 +24,48 @@ export default function App() {
     const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth < 768 : false);
 
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const locId = params.get("loc");
+        if (locId) {
+            const targetLoc = locations.find((l) => String(l.id).toLowerCase() === locId.toLowerCase());
+            if (targetLoc) {
+                setTimeout(() => setSelectedLocation(targetLoc), 100);
+                window.history.replaceState({}, "", window.location.pathname);
+            }
+        }
+    }, []);
+
     const isDimmed = !!(deferredSearch || selectedLocation);
 
-    /* 🚀 1. เตรียม Index สำหรับค้นหา (แก้ไข: จับคู่เฉพาะ loc.id เพื่อป้องกันการเขียนทับกันของตึก!) */
-    const { teacherSearchIndex, locationLookup } = useMemo(() => {
+    const { teacherSearchIndex, locationSearchIndex, locationLookup } = useMemo(() => {
         const teacherList = Object.values(teachersData) as Teacher[];
         const locMap = new Map<string, MapLocation>();
 
-        // 🌟 แก้ไขจุดนี้: Map เฉพาะ "id" ของตึกเท่านั้น ห้ามใส่ code เข้ามา
-        // เพื่อป้องกันไม่ให้อาคารที่รหัสซ้ำกับ ID ไปทับข้อมูลกันเอง
-        locations.forEach((loc) => {
+        const lIndex = locations.map((loc) => {
             if (loc.id !== undefined && loc.id !== null) {
                 locMap.set(String(loc.id).trim().toLowerCase(), loc);
             }
+            return {
+                originalLoc: loc,
+                searchText: `${loc.name || ""} ${loc.code || ""} ${(loc.facilities || []).join(" ")}`.toLowerCase(),
+            };
         });
 
         const tIndex = teacherList.map((t) => ({
             ...t,
             cleanLocIds: (t.locationIds || []).map((id) => String(id).trim().toLowerCase()),
-            // รวมทุกชื่อ-นามสกุล-ตำแหน่ง สำหรับค้นหา
             searchText: `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase(),
         }));
 
-        return { teacherSearchIndex: tIndex, locationLookup: locMap };
+        return { teacherSearchIndex: tIndex, locationSearchIndex: lIndex, locationLookup: locMap };
     }, []);
 
-    /* 🚀 2. ระบบค้นหาอัจฉริยะ (ส่งทั้งตึกที่เจอ และ อาจารย์ที่ค้นเจอออกไปแสดงผล) */
     const { filteredLocations, matchedIds, searchedTeachers } = useMemo(() => {
         const term = deferredSearch.toLowerCase().trim();
 
@@ -72,10 +81,9 @@ export default function App() {
         const matchedBuildingIds = new Set<string | number>();
         const matchedLocationsSet = new Set<MapLocation>();
 
-        // 🌟 สเต็ป 1: หาอาจารย์ และเก็บรายชื่ออาจารย์ที่ค้นเจอไว้ด้วย!
-        const matchedTeachers = teacherSearchIndex.filter((t) => searchWords.every((word) => t.searchText.includes(word)));
+        const allMatchedTeachers = teacherSearchIndex.filter((t) => searchWords.every((word) => t.searchText.includes(word)));
 
-        matchedTeachers.forEach((t) => {
+        allMatchedTeachers.forEach((t) => {
             t.cleanLocIds.forEach((locId) => {
                 const targetLoc = locationLookup.get(locId);
                 if (targetLoc) {
@@ -85,30 +93,28 @@ export default function App() {
             });
         });
 
-        // สเต็ป 2: หาจากชื่อตึก/รหัสตึกโดยตรง
-        locations.forEach((loc) => {
-            const fullLocText = `${loc.name || ""} ${loc.code || ""} ${(loc.facilities || []).join(" ")}`.toLowerCase();
-            if (searchWords.every((word) => fullLocText.includes(word))) {
-                matchedLocationsSet.add(loc);
-                matchedBuildingIds.add(loc.id);
+        const teachersForSidebar = allMatchedTeachers.slice(0, 30);
+
+        locationSearchIndex.forEach(({ originalLoc, searchText }) => {
+            if (searchWords.every((word) => searchText.includes(word))) {
+                matchedLocationsSet.add(originalLoc);
+                matchedBuildingIds.add(originalLoc.id);
             }
         });
 
         return {
             filteredLocations: Array.from(matchedLocationsSet),
             matchedIds: matchedBuildingIds,
-            searchedTeachers: matchedTeachers, // 👈 ส่งรายชื่ออาจารย์ที่ค้นเจอออกไป
+            searchedTeachers: teachersForSidebar,
         };
-    }, [deferredSearch, teacherSearchIndex, locationLookup]);
+    }, [deferredSearch, teacherSearchIndex, locationLookup, locationSearchIndex]);
 
     const handleSelectLocation = (loc: MapLocation) => {
         setSelectedLocation(loc);
         if (window.innerWidth < 768) setSidebarOpen(false);
     };
 
-    const handleBackgroundClick = () => {
-        setSelectedLocation(null);
-    };
+    const handleBackgroundClick = () => setSelectedLocation(null);
 
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
@@ -121,10 +127,11 @@ export default function App() {
     };
 
     return (
-        <div ref={mapContainerRef} className="w-full h-screen flex flex-col overflow-hidden font-sans relative transition-all duration-500" style={{ backgroundColor: isDimmed ? "#a2a798" : "var(--color-app-bg)" }}>
+        <div ref={mapContainerRef} className={`w-full h-screen flex flex-col overflow-hidden font-sans relative transition-colors duration-500 ${isDimmed ? "bg-slate-200" : "bg-app-bg"}`}>
             <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} showPins={showPins} setShowPins={setShowPins} />
 
-            <div className="relative flex-1 w-full h-full z-0 pt-30 md:pt-20">
+            {/* 🚀 ตีขอบเขตแบบ Hardcode ให้แผนที่พอดีจอเป๊ะๆ เริ่มใต้ Header ทันที ป้องกันแผนที่ทะลุไปใต้ขอบและแก้ปัญหาการซูมที่เพี้ยน */}
+            <div className="absolute top-15 md:top-28 bottom-0 left-0 right-0 z-0 overflow-hidden">
                 <TransformWrapper initialScale={1} minScale={0.5} maxScale={4} centerOnInit={true} wheel={{ step: 0.1 }}>
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>
@@ -137,7 +144,6 @@ export default function App() {
                                         <span className="text-xl md:text-2xl leading-none">-</span>
                                     </button>
                                 </div>
-
                                 <button
                                     onClick={() => {
                                         resetTransform();
@@ -147,14 +153,14 @@ export default function App() {
                                 >
                                     RESET
                                 </button>
-
                                 <button onClick={toggleFullscreen} className="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center bg-white text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] border border-slate-200 transition-colors active:scale-95">
                                     {isFullscreen ? <Minimize size={16} className="md:w-5 md:h-5" /> : <Maximize size={16} className="md:w-5 md:h-5" />}
                                 </button>
                             </div>
 
                             <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
-                                <div className="relative flex items-center justify-center cursor-grab active:cursor-grabbing p-4 md:p-8" style={{ minWidth: "100vw", minHeight: "100vh", width: "max-content", height: "max-content" }} onClick={handleBackgroundClick}>
+                                {/* 🚀 ลบ Padding ภายในออกให้หมด เพื่อให้การคำนวณ Scale ของไลบรารีทำงานสมบูรณ์ 100% ไม่มีขอบโหว่ */}
+                                <div className="relative flex items-center justify-center cursor-grab active:cursor-grabbing p-4 md:p-8" style={{ width: "max-content", height: "max-content", minWidth: "100%", minHeight: "100%" }} onClick={handleBackgroundClick}>
                                     <div onClick={(e) => e.stopPropagation()}>
                                         <MapVisual searchTerm={deferredSearch} selectedLocation={selectedLocation} matchedIds={matchedIds} showPins={showPins} onSelect={handleSelectLocation} isMobile={isMobile} />
                                     </div>
@@ -165,59 +171,64 @@ export default function App() {
                 </TransformWrapper>
             </div>
 
+            {/* 🚀 GLOW & CARD SECTION (ปรับขนาดใหญ่จุใจ + ปุ่ม X ติดหนึบไม่เลื่อนหาย) */}
             {selectedLocation && (
                 <>
-                    <div className="fixed inset-0 z-30 md:hidden transition-opacity duration-300" style={{ backgroundColor: "rgba(15, 23, 42, 0.4)" }} onClick={() => setSelectedLocation(null)}></div>
+                    {/* เงาดำมืดด้านหลัง */}
+                    <div className="fixed inset-0 z-50 md:hidden transition-opacity duration-300 bg-slate-900/50 backdrop-blur-2xs" onClick={() => setSelectedLocation(null)}></div>
 
-                    <div
-                        className="fixed z-40 bg-surface overflow-y-auto custom-scrollbar transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in border border-slate-200
-                                                bottom-4 left-4 right-4 rounded-3xl max-h-[calc(100dvh-130px)] slide-in-from-bottom-8
-                                                md:bottom-auto md:top-32 md:right-8 md:left-auto md:w-95 md:rounded-2xl md:max-h-[calc(100vh-140px)] md:slide-in-from-right-8"
-                    >
-                        <div className="h-56 sm:h-64 md:h-56 bg-slate-200 relative w-full">
-                            {selectedLocation.images?.[0] ? (
-                                <>
-                                    <img src={`https://zone.pbntc.site/${selectedLocation.images[0]}`} alt={selectedLocation.name} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent"></div>
-                                </>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
-                                    <Building2 size={48} className="opacity-40" />
-                                </div>
-                            )}
+                    {/* กล่องหลัก: ขยายขนาดใหญ่ขึ้น (max-h-[85vh], w-[calc(100%-1.5rem)]) + ใช้ flex flex-col เพื่อล็อกปุ่ม X */}
+                    <div className="fixed z-60 bg-surface overflow-hidden flex flex-col transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in zoom-in-95 border border-slate-200 top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-1.5rem)] max-w-sm sm:max-w-md rounded-3xl max-h-[85vh] md:top-32 md:right-8 md:left-auto md:bottom-auto md:translate-x-0 md:translate-y-0 md:w-95 md:rounded-2xl md:max-h-[calc(100vh-140px)] md:slide-in-from-right-8">
+                        {/* 🔴 ปุ่ม X ลอยติดหนึบ (Always Visible / Sticky) อยู่มุมขวาบนเสมอ ไม่เลื่อนตามเนื้อหา */}
+                        <button onClick={() => setSelectedLocation(null)} aria-label="ปิดหน้าต่าง" className="absolute top-3.5 right-3.5 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full transition-all shadow-md active:scale-95 z-30 backdrop-blur-xs border border-white/20">
+                            <X size={18} strokeWidth={2.5} />
+                        </button>
 
-                            <button onClick={() => setSelectedLocation(null)} className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors shadow-lg active:scale-95 z-10">
-                                <X size={18} strokeWidth={2.5} />
-                            </button>
-
-                            <div className="absolute bottom-4 left-5 right-5 text-white z-10">
-                                <span className="inline-block px-2.5 py-1 bg-secondary text-primary-dark text-xs font-extrabold uppercase tracking-widest rounded-md mb-2 shadow-sm">{selectedLocation.code}</span>
-                                <h3 className="text-xl md:text-2xl font-bold leading-tight drop-shadow-md">{selectedLocation.name}</h3>
-                            </div>
-                        </div>
-
-                        <div className="p-5 md:p-6 space-y-5 bg-surface">
-                            {selectedLocation.description && <p className="text-sm text-slate-600 leading-relaxed">{selectedLocation.description}</p>}
-
-                            {selectedLocation.facilities && selectedLocation.facilities.length > 0 && (
-                                <div className="space-y-2.5">
-                                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                                        สิ่งอำนวยความสะดวก <div className="h-px bg-slate-200 flex-1"></div>
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedLocation.facilities.map((facility, index) => (
-                                            <span key={index} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold border border-slate-200/60">
-                                                {facility}
-                                            </span>
-                                        ))}
+                        {/* 🟢 พื้นที่เนื้อหาที่เลื่อนได้ (Scrollable Content Area) */}
+                        <div className="overflow-y-auto custom-scrollbar flex-1 w-full">
+                            {/* ส่วนรูปภาพด้านบน */}
+                            <div className="h-56 sm:h-64 md:h-56 bg-slate-200 relative w-full shrink-0">
+                                {selectedLocation.images?.[0] ? (
+                                    <>
+                                        <img src={`https://zone.pbntc.site/${selectedLocation.images[0]}`} alt={selectedLocation.name} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent"></div>
+                                    </>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                                        <Building2 size={48} className="opacity-40" />
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            <div className="pt-2 pb-2">
-                                <a href={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] active:scale-[0.98]">
-                                    ดูรายละเอียดทั้งหมด <ArrowRight size={18} />
-                                </a>
+                                <div className="absolute bottom-4 left-5 right-5 text-white z-10 pr-8">
+                                    <span className="inline-block px-2.5 py-1 bg-secondary text-primary-dark text-xs font-extrabold uppercase tracking-widest rounded-md mb-2 shadow-sm">{selectedLocation.code}</span>
+                                    <h3 className="text-xl md:text-2xl font-bold leading-tight drop-shadow-md">{selectedLocation.name}</h3>
+                                </div>
+                            </div>
+
+                            {/* ส่วนคำอธิบายและปุ่มกด */}
+                            <div className="p-5 md:p-6 space-y-5 bg-surface">
+                                {selectedLocation.description && <p className="text-sm text-slate-600 leading-relaxed">{selectedLocation.description}</p>}
+
+                                {selectedLocation.facilities && selectedLocation.facilities.length > 0 && (
+                                    <div className="space-y-2.5">
+                                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                            สิ่งอำนวยความสะดวก <div className="h-px bg-slate-200 flex-1"></div>
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedLocation.facilities.map((facility, index) => (
+                                                <span key={index} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold border border-slate-200/60">
+                                                    {facility}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="pt-2 pb-2">
+                                    <a href={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] active:scale-[0.98]">
+                                        ดูรายละเอียดทั้งหมด <ArrowRight size={18} />
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

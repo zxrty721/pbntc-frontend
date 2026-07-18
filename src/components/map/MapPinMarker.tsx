@@ -1,4 +1,5 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Image as ImageIcon } from "lucide-react";
+import { useState } from "react";
 import type { MapLocation } from "../../assets/types";
 
 interface MapPinMarkerProps {
@@ -9,9 +10,32 @@ interface MapPinMarkerProps {
     zIndex: string;
     iconSize: number;
     onSelect: (loc: MapLocation) => void;
+    isSearching: boolean;
+    matchedCount?: number; // ไม่ได้ใช้แล้ว แต่ใส่ไว้ไม่ให้ Error กับไฟล์ MapVisual
 }
 
-export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityClass, zIndex, iconSize, onSelect }: MapPinMarkerProps) {
+export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityClass, zIndex, iconSize, onSelect, isSearching, matchedCount }: MapPinMarkerProps) {
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const [hasError, setHasError] = useState(false);
+
+    // 🚀 เพิ่ม State สำหรับจับการชี้เมาส์ (Hover) เพื่อใช้คุมการโหลดรูปภาพ
+    const [isHovered, setIsHovered] = useState(false);
+
+    const isActive = isSelected;
+    const isMatched = isHighlighted && !isSelected;
+
+    // 🚀 บังคับให้ป้ายเปิดค้างเมื่อ: (1) ถูกคลิก หรือ (2) ค้นหาตรงเงื่อนไขและผลลัพธ์ไม่เกิน 5 ตึก
+    const forceShowTooltip = isActive || (isSearching && isMatched && matchedCount !== undefined && matchedCount <= 5);
+
+    // 🚀 โหลดรูปเมื่อ: (1) ถูกคลิก, (2) เอาเมาส์ชี้ หรือ (3) ค้นหาตรงเงื่อนไขและผลลัพธ์ไม่เกิน 5 ตึก
+    const showImage = isActive || isHovered || (isSearching && isMatched && matchedCount !== undefined && matchedCount <= 5);
+
+    const pinColorClass = isActive ? "text-surface fill-primary stroke-surface" : isMatched ? "text-primary fill-secondary stroke-primary" : "text-primary fill-surface stroke-primary";
+
+    const pinTransformClass = isActive ? "-translate-y-5 scale-125" : isMatched ? "-translate-y-3 scale-110" : "group-hover:-translate-y-1 group-hover:scale-110";
+
+    const labelColorClass = isActive ? "bg-primary text-white border-primary-dark shadow-md" : isMatched ? "bg-secondary text-primary-dark border-secondary shadow-sm" : "bg-surface text-slate-600 border-slate-200 group-hover:text-primary group-hover:border-primary/30";
+
     return (
         <button
             className={`absolute focus:outline-none group transition-all duration-300 ${zIndex} ${opacityClass}`}
@@ -24,43 +48,51 @@ export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityCl
                 e.stopPropagation();
                 onSelect(loc);
             }}
+            // 🚀 จับเหตุการณ์เอาเมาส์เข้า-ออก เพื่อสั่งให้โหลดรูปภาพ
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-            <div className={`relative flex flex-col items-center justify-center transition-transform duration-300 ${isHighlighted ? "-translate-y-3 scale-110" : "group-hover:-translate-y-1 group-hover:scale-110"}`}>
+            <div className={`relative flex flex-col items-center justify-center transition-transform duration-300 ${pinTransformClass}`}>
                 <div className="relative">
-                    {/* เงาใต้หมุด */}
-                    {isHighlighted && <div className="absolute top-full left-1/2 w-4 h-1 bg-black/30 rounded-full "></div>}
-
-                    {/* ตัวไอคอนหมุด MapPin */}
-                    <MapPin size={iconSize} strokeWidth={isSelected ? 1.5 : 2} className={`filter drop-shadow-md transition-all duration-300 ${isHighlighted ? "text-surface fill-primary stroke-surface" : "text-primary fill-surface stroke-primary"}`} />
-
-                    {/* จุดสีเหลืองตรงกลางหมุด (ตอนถูกเลือก) */}
-                    {isHighlighted && <div className="absolute top-1/3 left-1/2 w-2 h-2 bg-secondary rounded-full shadow-inner -translate-x-1/2 -translate-y-1/2"></div>}
+                    {isActive && <div className="absolute top-[80%] left-1/2 w-6 h-6 bg-primary/40 rounded-full -translate-x-1/2 -translate-y-1/2 animate-ping pointer-events-none"></div>}
+                    {(isActive || isMatched) && <div className="absolute top-full left-1/2 w-4 h-1 bg-black/30 rounded-full transition-all duration-300"></div>}
+                    <MapPin size={iconSize} strokeWidth={isActive ? 1.5 : 2} className={`filter drop-shadow-md transition-all duration-300 ${pinColorClass}`} />
+                    {isActive && <div className="absolute top-[35%] left-1/2 w-2.5 h-2.5 bg-secondary rounded-full shadow-inner -translate-x-1/2 -translate-y-1/2"></div>}
+                    {isMatched && <div className="absolute top-[35%] left-1/2 w-2 h-2 bg-white rounded-full shadow-inner -translate-x-1/2 -translate-y-1/2"></div>}
                 </div>
 
                 <div className="flex flex-col items-center mt-1 pointer-events-none">
-                    {/* การ์ดสีขาวแสดงรหัสอาคาร */}
-                    <span className={`px-2 py-1 rounded-md shadow-sm text-xs font-bold leading-none transition-all duration-300 border ${isHighlighted ? "bg-primary text-secondary border-primary-dark" : "bg-surface text-slate-700 border-slate-200"}`}>{loc.code}</span>
+                    <span className={`px-2 py-1 rounded-md shadow-sm text-xs font-bold leading-none transition-colors duration-300 border ${labelColorClass}`}>{loc.code}</span>
 
-                    {/* 🌟 Tooltip แบบใหม่: มีรูปภาพ (แสดงเฉพาะจอคอม) */}
                     <div
-                        className={`absolute top-full mt-2 flex flex-col items-center bg-slate-800 text-white rounded-xl shadow-2xl transition-all duration-300 z-50 origin-top border border-slate-700
-                        ${isHighlighted ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 -translate-y-2 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0"}
+                        className={`absolute top-full mt-2 flex-col items-center bg-slate-800 text-white rounded-xl shadow-2xl transition-all duration-300 z-50 origin-top border border-slate-700
+                        hidden md:flex
+                        ${forceShowTooltip ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 -translate-y-2 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0"}
                     `}
                     >
-                        {/* สามเหลี่ยมชี้ขึ้นไปหาหมุด */}
                         <div className="absolute w-2.5 h-2.5 bg-slate-800 rotate-45 -top-1.5 left-1/2 -translate-x-1/2 border-l border-t border-slate-700"></div>
 
-                        {/* กล่องเนื้อหา Tooltip (ถ้ามีรูปจะขยายกว้างขึ้นในจอคอม) */}
-                        <div className={`flex flex-col w-max ${loc.images?.[0] ? "md:w-37.5" : "max-w-37.5"}`}>
-                            {/* ชื่ออาคาร */}
+                        <div className={`flex flex-col w-max ${showImage && loc.images?.[0] ? "md:w-37.5" : "max-w-37.5"}`}>
                             <div className="px-3 py-1.5 text-center z-10 w-full">
                                 <span className="text-[11px] font-bold leading-tight drop-shadow-sm whitespace-normal">{loc.name}</span>
                             </div>
 
-                            {/* 🖼️ รูปภาพ (ซ่อนในมือถือ แสดงแค่จอ md ขึ้นไป) */}
-                            {loc.images?.[0] && (
-                                <div className="hidden md:block w-full h-24 relative rounded-b-xl overflow-hidden border-t border-slate-700 bg-slate-900 shrink-0">
-                                    <img src={`https://zone.pbntc.site/${loc.images[0]}`} alt={loc.name} className="w-full h-full object-cover" />
+                            {/* 🚀 รูปจะปรากฏและถูกโหลด ก็ต่อเมื่อเมาส์ชี้หรือถูกคลิกเท่านั้น */}
+                            {showImage && loc.images?.[0] && (
+                                <div className="flex w-full h-24 relative rounded-b-xl overflow-hidden border-t border-slate-700 bg-slate-900 shrink-0 items-center justify-center">
+                                    {!isImageLoaded && !hasError && (
+                                        <div className="absolute inset-0 bg-slate-800 animate-pulse flex items-center justify-center">
+                                            <ImageIcon size={20} className="text-slate-600 opacity-50" />
+                                        </div>
+                                    )}
+
+                                    {hasError && (
+                                        <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
+                                            <ImageIcon size={20} className="text-slate-500 opacity-30" />
+                                        </div>
+                                    )}
+
+                                    <img src={`https://zone.pbntc.site/${loc.images[0]}`} alt={loc.name} loading="lazy" decoding="async" onLoad={() => setIsImageLoaded(true)} onError={() => setHasError(true)} className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`} />
                                 </div>
                             )}
                         </div>

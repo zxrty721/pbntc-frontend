@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useDeferredValue } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Phone, Search, X, ChevronLeft, ChevronRight, Maximize2, MapPin, Layers, GraduationCap, Info, ExternalLink, Building2 } from "lucide-react";
+import { ArrowLeft, Phone, Search, X, Maximize2, MapPin, Layers, GraduationCap, Info, Building2 } from "lucide-react";
 
 import { locations } from "../../assets/data/locations";
 import { teachersData } from "../../assets/data/teachers";
@@ -13,17 +13,28 @@ interface DeptCount {
     count: number;
 }
 
-/* 🚀 1. สร้าง Component ย่อยสำหรับการ์ดครู และใช้ React.memo เพื่อป้องกันการ Render ซ้ำซ้อนตอนพิมพ์ค้นหา */
+interface TeacherWithSearch extends Teacher {
+    searchText: string;
+}
+
 const TeacherCard = React.memo(({ teacher, onClick }: { teacher: Teacher; onClick: () => void }) => {
     return (
-        <div onClick={onClick} className="group relative bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:bg-primary/5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden">
-            <img src={`https://teacher.pbntc.site/${teacher.id}.jpg`} loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover bg-slate-200 border-2 border-white shadow-sm shrink-0" alt={teacher.name} />
-            <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-black text-slate-800 truncate group-hover:text-primary transition-colors">{teacher.name}</h4>
-                <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5 group-hover:text-primary/70">{teacher.position}</p>
+        <div onClick={onClick} className="group relative bg-white border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center">
+                <img
+                    src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover object-top"
+                    alt={teacher.name}
+                    onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                    }}
+                />
             </div>
-            <div className="text-slate-300 group-hover:text-primary transition-colors shrink-0">
-                <ExternalLink size={16} />
+            <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-black text-slate-800 truncate">{teacher.name}</h4>
+                <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5">{teacher.position}</p>
             </div>
         </div>
     );
@@ -34,8 +45,6 @@ export default function LocationDetailPage() {
 
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [teacherSearch, setTeacherSearch] = useState("");
-
-    /* 🚀 2. ใช้ DeferredValue หน่วงเวลาการพิมพ์ ไม่ให้ UI ค้าง */
     const deferredSearch = useDeferredValue(teacherSearch);
     const [selectedDept, setSelectedDept] = useState("all");
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -46,14 +55,19 @@ export default function LocationDetailPage() {
         return locations.find((l: MapLocation) => String(l.id) === String(params.id));
     }, [params?.id]);
 
-    const teachersInBuilding = useMemo(() => {
+    const teachersInBuilding = useMemo<TeacherWithSearch[]>(() => {
         if (!location) return [];
-        return (Object.values(teachersData) as Teacher[]).filter((t: Teacher) => t.locationIds?.includes(location.id));
+        return (Object.values(teachersData) as Teacher[])
+            .filter((t: Teacher) => t.locationIds?.includes(location.id))
+            .map((t) => ({
+                ...t,
+                searchText: `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase(),
+            }));
     }, [location]);
 
     const availableDepartments = useMemo<DeptCount[]>(() => {
         const deptCounts: Record<string, number> = {};
-        teachersInBuilding.forEach((t: Teacher) => {
+        teachersInBuilding.forEach((t) => {
             deptCounts[t.departmentId] = (deptCounts[t.departmentId] || 0) + 1;
         });
         return Object.entries(deptCounts).map(([id, count]) => ({ id, count }));
@@ -61,21 +75,17 @@ export default function LocationDetailPage() {
 
     const groupedTeachers = useMemo(() => {
         const term = deferredSearch.toLowerCase().trim();
-        // 💡 แบ่งคำค้นหาด้วยช่องว่างเช่นเดียวกัน
         const searchWords = term.split(/\s+/).filter(Boolean);
 
-        const filtered = teachersInBuilding.filter((t: Teacher) => {
-            // 🚀 เอารายละเอียดครูมารวมกัน แล้วเช็คว่าตรงกับคำค้นหาทุกคำหรือไม่
-            const fullTeacherText = `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase();
-            const matchSearch = searchWords.every((word) => fullTeacherText.includes(word));
-
+        const filtered = teachersInBuilding.filter((t) => {
+            const matchSearch = searchWords.every((word) => t.searchText.includes(word));
             const matchDept = selectedDept === "all" || t.departmentId === selectedDept;
 
             return matchSearch && matchDept;
         });
 
-        const groups: Record<string, Teacher[]> = {};
-        filtered.forEach((t: Teacher) => {
+        const groups: Record<string, TeacherWithSearch[]> = {};
+        filtered.forEach((t) => {
             if (!groups[t.departmentId]) groups[t.departmentId] = [];
             groups[t.departmentId].push(t);
         });
@@ -113,35 +123,19 @@ export default function LocationDetailPage() {
         <div className="flex flex-col min-h-screen pb-20 transition-colors duration-200 font-sans overflow-x-hidden bg-primary-dark">
             <TeacherModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
 
-            {/* LIGHTBOX (ไม่มี Backdrop Blur ตามที่กำหนด) */}
+            {/* 🚀 LIGHTBOX MODAL: ปรับปุ่มปิด X และปุ่มเปลี่ยนรูปให้คุมโทน กดง่ายบนมือถือ */}
             {isLightboxOpen && (
-                <div className="fixed inset-0 bg-black/95 flex items-center justify-center animate-in fade-in duration-200 z-100">
-                    <button onClick={() => setIsLightboxOpen(false)} className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-primary rounded-full text-white z-50 transition-colors">
-                        <X size={24} />
+                <div className="fixed inset-0 bg-black flex items-center justify-center z-100">
+                    <button onClick={() => setIsLightboxOpen(false)} className="absolute top-4 right-4 p-4 text-white z-50">
+                        <X size={32} />
                     </button>
-                    {galleryImages.length > 1 && (
-                        <>
-                            <button onClick={prevImage} className="absolute left-6 p-4 bg-white/10 hover:bg-primary rounded-full text-white z-50 transition-colors">
-                                <ChevronLeft size={32} />
-                            </button>
-                            <button onClick={nextImage} className="absolute right-6 p-4 bg-white/10 hover:bg-primary rounded-full text-white z-50 transition-colors">
-                                <ChevronRight size={32} />
-                            </button>
-                        </>
-                    )}
-                    <img src={currentImageSrc} alt={location.name} className="object-contain rounded-lg shadow-2xl" style={{ maxWidth: "95vw", maxHeight: "85vh" }} />
-                    <div className="absolute bottom-8 px-6 py-2 bg-black/50 text-white font-mono text-sm rounded-full border border-white/10">
-                        {currentImageIndex + 1} / {galleryImages.length}
-                    </div>
+                    <img src={currentImageSrc} alt={location.name} className="w-full h-auto max-h-[90vh] object-contain" />
                 </div>
             )}
 
-            {/* HERO SLIDER */}
             <section className="relative w-full bg-primary-dark group z-10 overflow-hidden">
                 <div className="relative w-full h-[45vh] min-h-87.5 flex flex-col justify-between">
                     <div className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out" style={{ backgroundImage: `url('${currentImageSrc}')` }}></div>
-
-                    {/* เงาดำบางๆ 40% และไล่สีแดงที่ขอบล่างให้เข้ากับพื้นหลัง */}
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-primary-dark to-transparent"></div>
 
@@ -170,7 +164,6 @@ export default function LocationDetailPage() {
                 </div>
             </section>
 
-            {/* MAIN CONTENT */}
             <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 -mt-7.5 relative z-20 space-y-6">
                 <div className="bg-surface rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.2)] p-6 md:p-8 w-full overflow-hidden">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -235,7 +228,6 @@ export default function LocationDetailPage() {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {teachers.map((teacher) => (
-                                        /* 🚀 3. เรียกใช้งาน TeacherCard ตรงนี้แทน div เดิม */
                                         <TeacherCard key={teacher.id} teacher={teacher} onClick={() => setSelectedTeacher(teacher)} />
                                     ))}
                                 </div>
@@ -261,12 +253,6 @@ export default function LocationDetailPage() {
                     </a>
                 </section>
             </main>
-
-            <footer className="w-full py-10 mt-10 text-center relative z-20">
-                <div className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-surface rounded-full text-primary-dark text-xs font-black uppercase tracking-widest shadow-md">
-                    <GraduationCap size={16} className="text-primary" /> PBNTC Map Project
-                </div>
-            </footer>
         </div>
     );
 }
