@@ -12,35 +12,72 @@ interface MapSidebarProps {
     onSelectTeacher?: (teacher: Teacher) => void;
 }
 
+const BADGE_COLORS = [
+    { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200" },
+    { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
+    { bg: "bg-amber-100", text: "text-amber-700", border: "border-amber-200" },
+    { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200" },
+    { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
+    { bg: "bg-cyan-100", text: "text-cyan-700", border: "border-cyan-200" },
+    { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
+];
+
+const getColorForId = (id: string | number) => {
+    const stringId = String(id);
+    let hash = 0;
+    for (let i = 0; i < stringId.length; i++) {
+        hash = stringId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % BADGE_COLORS.length;
+    return BADGE_COLORS[index];
+};
+
 export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLocations, selectedLocation, onSelectLocation, searchedTeachers = [], onSelectTeacher }: MapSidebarProps) {
-    // 🚀 เพิ่ม State สำหรับทำแอนิเมชันปุ่ม Copy Link
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const handleCopyLink = (e: React.MouseEvent, locId: string | number) => {
         e.stopPropagation();
-        // สร้าง URL พร้อมพารามิเตอร์ ?loc=...
         const url = `${window.location.origin}${window.location.pathname}?loc=${locId}`;
         navigator.clipboard.writeText(url);
 
         setCopiedId(String(locId));
-        setTimeout(() => setCopiedId(null), 2000); // กลับเป็นไอคอนแชร์เหมือนเดิมหลังผ่านไป 2 วิ
+        setTimeout(() => setCopiedId(null), 2000);
     };
 
     return (
-        <div className={`absolute z-20 flex flex-col bg-surface border-r border-slate-300 transition-all duration-300 bottom-0 left-0 right-0 rounded-t-3xl max-h-[65vh] md:top-28.5 md:bottom-0 md:left-0 md:w-85 md:rounded-none md:max-h-none md:pt-0 ${isSidebarOpen ? "translate-y-0 md:translate-x-0 opacity-100" : "translate-y-full md:translate-y-0 md:-translate-x-full opacity-0 pointer-events-none"}`}>
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 shrink-0 bg-surface">
-                <div className="flex items-center gap-3 text-slate-800 font-bold">
-                    <div className="p-2 bg-primary/10 rounded-xl">
-                        <Building2 className="text-primary" size={20} />
-                    </div>
-                    <span className="text-base">{searchedTeachers.length > 0 ? `พบอาจารย์ (${searchedTeachers.length} ท่าน)` : `อาคารเรียน (${filteredLocations.length})`}</span>
+        // 🚀 เปลี่ยนมาใช้ CSS Transform ล้วนๆ:
+        // - มือถือใช้ translate-y (เลื่อนขึ้น/ลง)
+        // - คอมพ์ใช้ translate-x (เลื่อนซ้าย/ขวา) แบบไม่หดความกว้าง
+        <div
+            className={`absolute z-30 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-out
+            bottom-0 left-0 right-0 rounded-t-3xl max-h-[75vh] min-h-[50vh]
+            md:top-28 md:bottom-0 md:left-0 md:w-85 md:rounded-none md:max-h-none md:border-r md:border-slate-300
+            ${isSidebarOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:-translate-x-full"}
+        `}
+        >
+            <div className="flex flex-col shrink-0 bg-white z-10 border-b border-slate-200 rounded-t-3xl md:rounded-none">
+                {/* ขีดลากสำหรับมือถือ */}
+                <div className="w-full flex justify-center pt-2.5 pb-1 md:hidden cursor-grab active:cursor-grabbing" onClick={() => setSidebarOpen(false)}>
+                    <div className="w-10 h-1.5 bg-slate-200 rounded-full"></div>
                 </div>
-                <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 text-slate-400 hover:text-primary">
-                    <X size={24} />
-                </button>
+
+                {/* พื้นที่ข้อความ Header */}
+                <div className="flex items-center justify-between px-4 pb-3 md:pt-4 md:px-5">
+                    <div className="flex items-center gap-2.5 text-slate-800 font-black">
+                        <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg md:rounded-xl">
+                            <Building2 className="text-primary w-4 h-4 md:w-5 md:h-5" />
+                        </div>
+                        <span className="text-sm md:text-base tracking-tight">{searchedTeachers.length > 0 ? `พบอาจารย์ (${searchedTeachers.length} ท่าน)` : `รายชื่ออาคาร (${filteredLocations.length})`}</span>
+                    </div>
+                    {/* 🚀 ให้ปุ่ม X แสดงบนคอมด้วย เพื่อให้กดปิดจากแถบข้างได้สะดวกๆ */}
+                    <button onClick={() => setSidebarOpen(false)} className="p-1.5 bg-slate-100 text-slate-500 rounded-full hover:bg-primary/10 hover:text-primary transition-colors active:scale-95">
+                        <X size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 min-h-0 bg-surface">
+            {/* 📜 Content List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-4 space-y-3 bg-slate-50/80 pb-16 md:pb-6">
                 {filteredLocations.length > 0 ? (
                     [...filteredLocations]
                         .sort((a, b) => a.code.localeCompare(b.code))
@@ -49,29 +86,29 @@ export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLoca
                             const teachersInThisBuilding = searchedTeachers.filter((t) => (t.locationIds || []).some((id) => String(id).trim().toLowerCase() === String(loc.id).trim().toLowerCase()));
                             const isCopied = copiedId === String(loc.id);
 
+                            const badgeColor = getColorForId(loc.id);
+
                             return (
-                                <div key={loc.id} className={`flex flex-col rounded-2xl transition-all duration-200 border-2 overflow-hidden ${isActive ? "bg-primary/5 border-primary shadow-sm" : "bg-transparent border-transparent hover:border-slate-200"}`}>
-                                    {/* 🏢 ส่วนปุ่มตึก (เปลี่ยนจาก button เป็น div role="button") */}
-                                    <div role="button" onClick={() => onSelectLocation(loc)} className={`w-full flex items-center gap-3 p-3 text-left transition-all cursor-pointer ${isActive ? "bg-primary text-white" : "hover:bg-slate-50 text-slate-700"}`}>
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-mono font-bold text-xs transition-colors border shadow-xs ${isActive ? "bg-secondary text-primary border-secondary" : "bg-slate-100 text-slate-600 border-slate-200/80"}`}>{loc.code}</div>
+                                <div key={loc.id} className={`flex flex-col rounded-2xl transition-all duration-300 border-2 overflow-hidden bg-white shadow-xs hover:shadow-md ${isActive ? "border-primary shadow-primary/10" : "border-slate-100 hover:border-primary/30"}`}>
+                                    <div role="button" onClick={() => onSelectLocation(loc)} className={`w-full flex items-center gap-3 p-3 md:p-3.5 text-left transition-all cursor-pointer ${isActive ? "bg-primary text-white" : "hover:bg-slate-50 text-slate-700"}`}>
+                                        <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm transition-all shadow-xs border ${isActive ? "bg-secondary text-primary-dark border-secondary" : `${badgeColor.bg} ${badgeColor.text} ${badgeColor.border}`}`}>{loc.code}</div>
+
                                         <div className="flex-1 min-w-0">
-                                            <div className="font-bold text-sm truncate">{loc.name}</div>
+                                            <div className={`font-black text-sm truncate ${isActive ? "text-white" : "text-slate-800"}`}>{loc.name}</div>
                                             {teachersInThisBuilding.length > 0 && !isActive && (
-                                                <div className="text-[11px] font-medium text-primary mt-0.5 flex items-center gap-1">
-                                                    <User size={12} /> มีอาจารย์ที่ค้นหาอยู่ {teachersInThisBuilding.length} ท่าน
+                                                <div className="text-[11px] font-bold text-primary mt-1 flex items-center gap-1.5 bg-primary/5 w-fit px-2 py-0.5 rounded-md">
+                                                    <User size={12} /> พบ {teachersInThisBuilding.length} ท่าน
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* 🚀 ปุ่ม Copy Link (จะโชว์ไอคอนชัดขึ้นเมื่อตึกถูกเลือก) */}
-                                        <button onClick={(e) => handleCopyLink(e, loc.id)} className={`p-2 rounded-lg transition-all active:scale-90 ${isActive ? "bg-white/20 text-white hover:bg-white/30" : "text-slate-400 hover:bg-slate-200 hover:text-primary"}`} title="คัดลอกลิงก์ไปยังอาคารนี้">
-                                            {isCopied ? <Check size={16} className={isActive ? "text-secondary" : "text-green-600"} /> : <Share2 size={16} />}
+                                        <button onClick={(e) => handleCopyLink(e, loc.id)} className={`p-2 rounded-xl transition-all active:scale-90 shadow-xs ${isActive ? "bg-white/10 text-white hover:bg-white/20 border border-white/20" : "bg-white text-slate-400 hover:bg-slate-100 hover:text-primary border border-slate-200"}`} title="คัดลอกลิงก์ไปยังอาคารนี้">
+                                            {isCopied ? <Check size={16} className={isActive ? "text-secondary" : "text-green-600"} strokeWidth={3} /> : <Share2 size={16} />}
                                         </button>
                                     </div>
 
-                                    {/* 👨‍🏫 ส่วนแสดงผลการ์ดอาจารย์ */}
                                     {teachersInThisBuilding.length > 0 && (
-                                        <div className="p-2 space-y-1.5 bg-slate-50/80 border-t border-slate-200/60">
+                                        <div className={`p-3 space-y-2 border-t ${isActive ? "bg-primary/5 border-primary/20" : "bg-slate-50 border-slate-100"}`}>
                                             {teachersInThisBuilding.map((teacher) => (
                                                 <div
                                                     key={teacher.id}
@@ -79,16 +116,16 @@ export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLoca
                                                         e.stopPropagation();
                                                         onSelectTeacher?.(teacher);
                                                     }}
-                                                    className="group flex items-center gap-2.5 p-2 bg-white hover:bg-primary/10 border border-slate-200/80 hover:border-primary/30 rounded-xl cursor-pointer transition-all shadow-2xs hover:shadow-sm"
+                                                    className={`group flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all shadow-sm border ${isActive ? "bg-white hover:bg-primary/5 border-primary/20 hover:border-primary/40 text-slate-800" : "bg-white hover:bg-primary/5 border-slate-200/80 hover:border-primary/20 text-slate-700"}`}
                                                 >
-                                                    <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 group-hover:bg-primary group-hover:text-white transition-colors">
+                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border transition-colors ${isActive ? "bg-primary/10 text-primary border-primary/20 group-hover:bg-primary group-hover:text-white" : "bg-slate-100 text-slate-500 border-slate-200 group-hover:bg-primary group-hover:text-white group-hover:border-primary"}`}>
                                                         <User size={16} />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="text-xs font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{teacher.name}</div>
-                                                        <div className="text-[10px] font-semibold text-slate-500 truncate mt-0.5">{teacher.position || "บุคลากร"}</div>
+                                                        <div className="text-xs font-bold truncate transition-colors">{teacher.name}</div>
+                                                        <div className={`text-[10px] font-semibold truncate mt-0.5 ${isActive ? "text-primary/70" : "text-slate-500"}`}>{teacher.position || "บุคลากร"}</div>
                                                     </div>
-                                                    <ExternalLink size={14} className="text-slate-400 group-hover:text-primary shrink-0 mr-1 transition-colors" />
+                                                    <ExternalLink size={14} className={`shrink-0 mr-1 transition-colors ${isActive ? "text-primary/40 group-hover:text-primary" : "text-slate-400 group-hover:text-primary"}`} />
                                                 </div>
                                             ))}
                                         </div>
@@ -97,9 +134,12 @@ export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLoca
                             );
                         })
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-48 text-slate-400 space-y-3 opacity-70">
-                        <Search size={36} className="stroke-1" />
-                        <span className="text-sm font-medium">ไม่พบข้อมูลที่ค้นหา</span>
+                    <div className="flex flex-col items-center justify-center h-full min-h-50 text-slate-400 space-y-3 opacity-70">
+                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <Search size={32} className="stroke-1 text-slate-400" />
+                        </div>
+                        <span className="text-sm font-black text-slate-500">ไม่พบข้อมูลที่ค้นหา</span>
+                        <span className="text-[10px] font-medium text-slate-400">ลองใช้คำค้นหาอื่นดูอีกครั้ง</span>
                     </div>
                 )}
             </div>

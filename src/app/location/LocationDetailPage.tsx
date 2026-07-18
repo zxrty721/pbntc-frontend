@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useDeferredValue } from "react";
+import React, { useState, useMemo, useEffect, useDeferredValue, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Phone, Search, X, Maximize2, MapPin, Layers, GraduationCap, Info, Building2 } from "lucide-react";
 
@@ -17,28 +17,31 @@ interface TeacherWithSearch extends Teacher {
     searchText: string;
 }
 
-const TeacherCard = React.memo(({ teacher, onClick }: { teacher: Teacher; onClick: () => void }) => {
-    return (
-        <div onClick={onClick} className="group relative bg-white border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center">
-                <img
-                    src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover object-top"
-                    alt={teacher.name}
-                    onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                    }}
-                />
+const TeacherCard = React.memo(
+    ({ teacher, onClick }: { teacher: Teacher; onClick: (t: Teacher) => void }) => {
+        return (
+            <div onClick={() => onClick(teacher)} className="group relative bg-white border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer transform-gpu">
+                <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center transform-gpu">
+                    <img
+                        src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover object-top"
+                        alt={teacher.name}
+                        onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                        }}
+                    />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-black text-slate-800 truncate">{teacher.name}</h4>
+                    <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5">{teacher.position}</p>
+                </div>
             </div>
-            <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-black text-slate-800 truncate">{teacher.name}</h4>
-                <p className="text-[11px] font-bold text-slate-500 truncate uppercase mt-0.5">{teacher.position}</p>
-            </div>
-        </div>
-    );
-});
+        );
+    },
+    (prev, next) => prev.teacher.id === next.teacher.id,
+);
 
 export default function LocationDetailPage() {
     const params = useParams();
@@ -114,6 +117,10 @@ export default function LocationDetailPage() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [location]);
 
+    const handleTeacherClick = useCallback((teacher: Teacher) => {
+        setSelectedTeacher(teacher);
+    }, []);
+
     if (!location) return null;
 
     const galleryImages = location.images && location.images.length > 0 ? location.images : ["default.jpg"];
@@ -123,7 +130,6 @@ export default function LocationDetailPage() {
         <div className="flex flex-col min-h-screen pb-20 transition-colors duration-200 font-sans overflow-x-hidden bg-primary-dark">
             <TeacherModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
 
-            {/* 🚀 LIGHTBOX MODAL: ปรับปุ่มปิด X และปุ่มเปลี่ยนรูปให้คุมโทน กดง่ายบนมือถือ */}
             {isLightboxOpen && (
                 <div className="fixed inset-0 bg-black flex items-center justify-center z-100">
                     <button onClick={() => setIsLightboxOpen(false)} className="absolute top-4 right-4 p-4 text-white z-50">
@@ -228,7 +234,7 @@ export default function LocationDetailPage() {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {teachers.map((teacher) => (
-                                        <TeacherCard key={teacher.id} teacher={teacher} onClick={() => setSelectedTeacher(teacher)} />
+                                        <TeacherCard key={teacher.id} teacher={teacher} onClick={handleTeacherClick} />
                                     ))}
                                 </div>
                             </div>
