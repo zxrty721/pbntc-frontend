@@ -156,7 +156,7 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                     {/* 1. ฝั่งซ้าย: โลโก้วิทยาลัย (ในจอคอมจะใช้พื้นที่ 1 ส่วน เพื่อสมดุล) */}
                     <div className="flex items-center shrink-0 md:flex-1" ref={dropdownRef}>
                         <a href="https://pbntc.ac.th/" target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-3 group">
-                            <img src="/logo192.png" alt="PBNTC Logo" className="h-11 w-auto transition-transform group-hover:scale-105 shrink-0" />
+                            <img src="./logo192.png" alt="PBNTC Logo" className="h-11 w-auto transition-transform group-hover:scale-105 shrink-0" />
                             <div className="flex flex-col min-w-0">
                                 <h1 className="font-bold text-xl text-slate-900 leading-tight truncate group-hover:text-primary transition-colors">วิทยาลัยเทคนิคเพชรบูรณ์</h1>
                                 <span className="text-xs font-bold text-primary tracking-wider uppercase leading-none truncate">Phetchabun Technical College</span>
@@ -165,7 +165,7 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
 
                         <div className="md:hidden">
                             <button onClick={() => setIsSocialDropdownOpen(!isSocialDropdownOpen)} aria-label="เปิดเมนูข้อมูลวิทยาลัย" className={`p-1.5 rounded-xl border transition-all shadow-sm active:scale-95 flex items-center justify-center ${isSocialDropdownOpen ? "bg-primary-dark border-primary-dark" : "bg-primary border-primary hover:bg-primary-dark"}`}>
-                                <img src="/logo192.png" alt="Logo" className="h-6 w-6 shrink-0 drop-shadow-sm" />
+                                <img src="./logo192.png" alt="Logo" className="h-6 w-6 shrink-0 drop-shadow-sm" />
                             </button>
                         </div>
                     </div>
@@ -212,7 +212,7 @@ export default function Header({ searchTerm, setSearchTerm, isSidebarOpen, setSi
                                 <X size={14} />
                             </button>
                             <div className="flex items-center gap-2.5 pr-6">
-                                <img src="/logo192.png" alt="Logo" className="w-9 h-9 shrink-0 drop-shadow" />
+                                <img src="./logo192.png" alt="Logo" className="w-9 h-9 shrink-0 drop-shadow" />
                                 <div className="min-w-0 flex-1">
                                     <h2 className="font-bold text-xs leading-tight text-white">วิทยาลัยเทคนิคเพชรบูรณ์</h2>
                                     <p className="text-[9px] text-secondary font-bold tracking-tight uppercase leading-tight mt-0.5 whitespace-normal">Phetchabun Technical College</p>

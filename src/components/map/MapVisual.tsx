@@ -18,8 +18,8 @@ export default function MapVisual({ searchTerm, selectedLocation, matchedIds, sh
     return (
         <div className="relative w-375 max-w-none">
             {/* 🚀 GPU Optimization: เพิ่ม transform-gpu และ will-change-[filter] ให้การ์ดจอเตรียม VRAM รองรับคำสั่งลดแสงขาวดำ */}
-            <img 
-                src="/map.webp" 
+           <img 
+                src="./map.webp" 
                 alt="College Map" 
                 className={`w-full h-auto object-contain rounded-2xl shadow-2xl shadow-emerald-800 pointer-events-none select-none transition-all duration-500 drop-shadow-2xl transform-gpu will-change-[filter] ${isSearching || selectedLocation ? "grayscale brightness-75 opacity-95" : "grayscale-0 brightness-100 opacity-100"}`} 
             />

@@ -18,5 +18,6 @@ export default defineConfig({
     },
     output: {
         minify: true,
+        assetPrefix: '/pbntc69/map/dist/',
     },
 });

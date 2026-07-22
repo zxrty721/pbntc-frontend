@@ -121,7 +121,7 @@ export default function LocationDetailPage() {
 
     if (!location) return null;
 
-    const galleryImages = location.images && location.images.length > 0 ? location.images : ["default.jpg"];
+    const galleryImages = location.images && location.images.length > 0 ? location.images : ["./default.jpg"];
     const currentImageSrc = `https://zone.pbntc.site/${galleryImages[currentImageIndex]}`;
 
     return (
@@ -145,7 +145,7 @@ export default function LocationDetailPage() {
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-primary-dark to-transparent"></div>
 
                     <div className="relative z-20 p-4 w-full">
-                        <Link to="/" className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-white hover:text-primary-dark rounded-full text-white text-xs font-black uppercase transition-all shadow-sm w-fit border border-white/10">
+                       <Link to="/" relative="path" className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-white hover:text-primary-dark rounded-full text-white text-xs font-black uppercase transition-all shadow-sm w-fit border border-white/10">
                             <ArrowLeft size={14} /> กลับสู่แผนที่
                         </Link>
                     </div>

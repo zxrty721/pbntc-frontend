@@ -8,6 +8,7 @@ import MapVisual from "./components/map/MapVisual";
 import TeacherModal from "./components/ui/TeacherModal";
 import { locations } from "./assets/data/locations";
 import { teachersData } from "./assets/data/teachers";
+import { Link } from "react-router-dom";
 import type { MapLocation, Teacher } from "./assets/types";
 
 export default function App() {
@@ -231,9 +232,9 @@ export default function App() {
                                 )}
 
                                 <div className="pt-2 pb-2">
-                                    <a href={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] active:scale-[0.98]">
+                                    <Link to={`/app/location/${selectedLocation.id}`} className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] active:scale-[0.98]">
                                         ดูรายละเอียดทั้งหมด <ArrowRight size={18} />
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
