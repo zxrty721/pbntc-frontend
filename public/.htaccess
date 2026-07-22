@@ -1,10 +1,10 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  
+
   # ตรวจสอบว่าไม่ได้เรียกหาไฟล์หรือโฟลเดอร์ที่มีอยู่จริง
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  
-  # ให้ชี้ไปที่ index.html ในโฟลเดอร์ที่มันอาศัยอยู่ ณ ตอนนั้น 
+
+  # ให้ชี้ไปที่ index.html ในโฟลเดอร์ที่มันอาศัยอยู่ ณ ตอนนั้น
   RewriteRule ^ index.html [L]
 </IfModule>
