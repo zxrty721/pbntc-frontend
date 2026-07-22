@@ -1,5 +1,4 @@
 // Export ทุกอย่างจากไฟล์ย่อย
-export * from "./common";
 export * from "./department";
 export * from "./location";
 export * from "./teacher";

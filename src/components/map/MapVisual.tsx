@@ -13,13 +13,16 @@ interface MapVisualProps {
 
 export default function MapVisual({ searchTerm, selectedLocation, matchedIds, showPins, onSelect }: MapVisualProps) {
     const isSearching = searchTerm.trim().length > 0;
-
-    // 🚀 นับจำนวนตึกที่ค้นหาเจอ (เพื่อนเอาไปเช็คว่าเกิน 5 ตึกไหม)
     const matchedCount = matchedIds.size;
 
     return (
         <div className="relative w-375 max-w-none">
-            <img src="/map.svg" alt="College Map" className={`w-full h-auto object-contain pointer-events-none select-none transition-all duration-500 drop-shadow-2xl ${isSearching || selectedLocation ? "grayscale brightness-75 opacity-95" : "grayscale-0 brightness-100 opacity-100"}`} />
+            {/* 🚀 GPU Optimization: เพิ่ม transform-gpu และ will-change-[filter] ให้การ์ดจอเตรียม VRAM รองรับคำสั่งลดแสงขาวดำ */}
+            <img 
+                src="/map.webp" 
+                alt="College Map" 
+                className={`w-full h-auto object-contain rounded-2xl shadow-2xl shadow-emerald-800 pointer-events-none select-none transition-all duration-500 drop-shadow-2xl transform-gpu will-change-[filter] ${isSearching || selectedLocation ? "grayscale brightness-75 opacity-95" : "grayscale-0 brightness-100 opacity-100"}`} 
+            />
             {showPins &&
                 locations.map((loc) => {
                     const isMatch = matchedIds.has(loc.id);
@@ -40,7 +43,6 @@ export default function MapVisual({ searchTerm, selectedLocation, matchedIds, sh
                             zIndex={zIndex}
                             iconSize={iconSize}
                             onSelect={onSelect}
-                            // 🚀 ส่ง 2 ตัวนี้เพิ่มไปให้ Pin เอาไปตัดสินใจเรื่องการโชว์รูป
                             isSearching={isSearching}
                             matchedCount={matchedCount}
                         />

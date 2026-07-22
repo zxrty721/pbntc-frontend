@@ -1,5 +1,5 @@
 import { MapPin, Image as ImageIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, memo } from "react"; // 🚀 CPU Optimization: เพิ่ม memo
 import type { MapLocation } from "../../assets/types";
 
 interface MapPinMarkerProps {
@@ -11,34 +11,34 @@ interface MapPinMarkerProps {
     iconSize: number;
     onSelect: (loc: MapLocation) => void;
     isSearching: boolean;
-    matchedCount?: number; // ไม่ได้ใช้แล้ว แต่ใส่ไว้ไม่ให้ Error กับไฟล์ MapVisual
+    matchedCount?: number;
 }
 
-export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityClass, zIndex, iconSize, onSelect, isSearching, matchedCount }: MapPinMarkerProps) {
+const MapPinMarker = ({ loc, isSelected, isHighlighted, opacityClass, zIndex, iconSize, onSelect, isSearching, matchedCount }: MapPinMarkerProps) => {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
-
-    // 🚀 เพิ่ม State สำหรับจับการชี้เมาส์ (Hover) เพื่อใช้คุมการโหลดรูปภาพ
     const [isHovered, setIsHovered] = useState(false);
 
     const isActive = isSelected;
     const isMatched = isHighlighted && !isSelected;
 
-    // 🚀 บังคับให้ป้ายเปิดค้างเมื่อ: (1) ถูกคลิก หรือ (2) ค้นหาตรงเงื่อนไขและผลลัพธ์ไม่เกิน 5 ตึก
     const forceShowTooltip = isActive || (isSearching && isMatched && matchedCount !== undefined && matchedCount <= 5);
-
-    // 🚀 โหลดรูปเมื่อ: (1) ถูกคลิก, (2) เอาเมาส์ชี้ หรือ (3) ค้นหาตรงเงื่อนไขและผลลัพธ์ไม่เกิน 5 ตึก
     const showImage = isActive || isHovered || (isSearching && isMatched && matchedCount !== undefined && matchedCount <= 5);
 
     const pinColorClass = isActive ? "text-surface fill-primary stroke-surface" : isMatched ? "text-primary fill-secondary stroke-primary" : "text-primary fill-surface stroke-primary";
 
-    const pinTransformClass = isActive ? "-translate-y-5 scale-125" : isMatched ? "-translate-y-3 scale-110" : "group-hover:-translate-y-1 group-hover:scale-110";
+    // 🚀 GPU Optimization: เพิ่ม transform-gpu will-change-transform เพื่อผลักภาระ Animation เด้งดึ๋งไปที่การ์ดจอ
+    const pinTransformClass = isActive 
+        ? "-translate-y-5 scale-125 transform-gpu will-change-transform" 
+        : isMatched 
+        ? "-translate-y-3 scale-110 transform-gpu will-change-transform" 
+        : "group-hover:-translate-y-1 group-hover:scale-110 transform-gpu will-change-transform";
 
     const labelColorClass = isActive ? "bg-primary text-white border-primary-dark shadow-md" : isMatched ? "bg-secondary text-primary-dark border-secondary shadow-sm" : "bg-surface text-slate-600 border-slate-200 group-hover:text-primary group-hover:border-primary/30";
 
     return (
         <button
-            className={`absolute focus:outline-none group transition-all duration-300 ${zIndex} ${opacityClass}`}
+            className={`absolute focus:outline-none group transition-all duration-300 ${zIndex} ${opacityClass} transform-gpu will-change-transform`} // 🚀 GPU Optimization
             style={{
                 left: `${loc.coordinates.x}%`,
                 top: `${loc.coordinates.y}%`,
@@ -48,7 +48,6 @@ export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityCl
                 e.stopPropagation();
                 onSelect(loc);
             }}
-            // 🚀 จับเหตุการณ์เอาเมาส์เข้า-ออก เพื่อสั่งให้โหลดรูปภาพ
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -66,7 +65,7 @@ export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityCl
 
                     <div
                         className={`absolute top-full mt-2 flex-col items-center bg-slate-800 text-white rounded-xl shadow-2xl transition-all duration-300 z-50 origin-top border border-slate-700
-                        hidden md:flex
+                        hidden md:flex transform-gpu will-change-transform /* 🚀 GPU Optimization สำหรับ Popup */
                         ${forceShowTooltip ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 -translate-y-2 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0"}
                     `}
                     >
@@ -77,7 +76,6 @@ export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityCl
                                 <span className="text-[11px] font-bold leading-tight drop-shadow-sm whitespace-normal">{loc.name}</span>
                             </div>
 
-                            {/* 🚀 รูปจะปรากฏและถูกโหลด ก็ต่อเมื่อเมาส์ชี้หรือถูกคลิกเท่านั้น */}
                             {showImage && loc.images?.[0] && (
                                 <div className="flex w-full h-24 relative rounded-b-xl overflow-hidden border-t border-slate-700 bg-slate-900 shrink-0 items-center justify-center">
                                     {!isImageLoaded && !hasError && (
@@ -101,4 +99,7 @@ export default function MapPinMarker({ loc, isSelected, isHighlighted, opacityCl
             </div>
         </button>
     );
-}
+};
+
+// 🚀 CPU Optimization: ห่อด้วย memo ป้องกันการวาดใหม่ (Re-render) สำหรับตึกที่ไม่ถูกกระทำ
+export default memo(MapPinMarker);

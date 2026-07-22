@@ -2,25 +2,22 @@ import React, { useState, useMemo, useEffect, useDeferredValue, useCallback } fr
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Phone, Search, X, Maximize2, MapPin, Layers, GraduationCap, Info, Building2 } from "lucide-react";
 
-import { locations } from "../../assets/data/locations";
-import { teachersData } from "../../assets/data/teachers";
+import { locationLookup } from "../../assets/data/locations";
+import { teachersByLocation } from "../../assets/data/teachers";
 import { DEPARTMENTS } from "../../assets/data/departments";
 import TeacherModal from "../../components/ui/TeacherModal";
-import type { Teacher, MapLocation } from "../../assets/types";
+import type { Teacher } from "../../assets/types";
 
 interface DeptCount {
     id: string;
     count: number;
 }
 
-interface TeacherWithSearch extends Teacher {
-    searchText: string;
-}
-
 const TeacherCard = React.memo(
     ({ teacher, onClick }: { teacher: Teacher; onClick: (t: Teacher) => void }) => {
         return (
-            <div onClick={() => onClick(teacher)} className="group relative bg-white border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer transform-gpu">
+            // 🚀 GPU: เพิ่ม will-change-transform คู่กับ transform-gpu 
+            <div onClick={() => onClick(teacher)} className="group relative bg-white border border-slate-200 p-4 rounded-2xl flex items-center gap-4 hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer transform-gpu will-change-transform">
                 <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center transform-gpu">
                     <img
                         src={`https://teacher.pbntc.site/${teacher.id}.jpg`}
@@ -55,24 +52,25 @@ export default function LocationDetailPage() {
 
     const location = useMemo(() => {
         if (!params?.id) return undefined;
-        return locations.find((l: MapLocation) => String(l.id) === String(params.id));
+        // 🚀 O(1): locationLookup pre-compute มาจากไฟล์ data แล้ว แทนการ .find() วน Array
+        return locationLookup[params.id];
     }, [params?.id]);
 
-    const teachersInBuilding = useMemo<TeacherWithSearch[]>(() => {
+    const teachersInBuilding = useMemo<Teacher[]>(() => {
         if (!location) return [];
-        return (Object.values(teachersData) as Teacher[])
-            .filter((t: Teacher) => t.locationIds?.includes(location.id))
-            .map((t) => ({
-                ...t,
-                searchText: `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase(),
-            }));
+        // 🚀 O(1): teachersByLocation จัดกลุ่มไว้ล่วงหน้าแล้วตอน import ข้อมูล
+        // แทนการวนครูทั้งหมด (~200 คน) ทุกครั้งที่เปิดหน้าอาคารใหม่
+        // และ Teacher แต่ละคนมี searchText pre-compute มาให้แล้ว ไม่ต้องคำนวณเองซ้ำ
+        return teachersByLocation[String(location.id)] || [];
     }, [location]);
 
     const availableDepartments = useMemo<DeptCount[]>(() => {
-        const deptCounts: Record<string, number> = {};
-        teachersInBuilding.forEach((t) => {
-            deptCounts[t.departmentId] = (deptCounts[t.departmentId] || 0) + 1;
-        });
+        // 🚀 CPU: ใช้ Reduce เพื่อรวมร่าง Department ให้อ่านและทำงานเร็วขึ้น
+        const deptCounts = teachersInBuilding.reduce((acc, t) => {
+            acc[t.departmentId] = (acc[t.departmentId] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        
         return Object.entries(deptCounts).map(([id, count]) => ({ id, count }));
     }, [teachersInBuilding]);
 
@@ -81,19 +79,19 @@ export default function LocationDetailPage() {
         const searchWords = term.split(/\s+/).filter(Boolean);
 
         const filtered = teachersInBuilding.filter((t) => {
-            const matchSearch = searchWords.every((word) => t.searchText.includes(word));
+            const matchSearch = searchWords.length === 0 || searchWords.every((word) => t.searchText.includes(word)); // 🚀 CPU: ข้ามเช็คถ้าไม่ได้พิมพ์
             const matchDept = selectedDept === "all" || t.departmentId === selectedDept;
 
             return matchSearch && matchDept;
         });
 
-        const groups: Record<string, TeacherWithSearch[]> = {};
-        filtered.forEach((t) => {
+        // 🚀 CPU: ใช้ Reduce จัดกลุ่มเช่นกัน
+        return filtered.reduce((groups, t) => {
             if (!groups[t.departmentId]) groups[t.departmentId] = [];
             groups[t.departmentId].push(t);
-        });
+            return groups;
+        }, {} as Record<string, Teacher[]>);
 
-        return groups;
     }, [teachersInBuilding, deferredSearch, selectedDept]);
 
     const nextImage = (e?: React.MouseEvent) => {
@@ -141,7 +139,8 @@ export default function LocationDetailPage() {
 
             <section className="relative w-full bg-primary-dark group z-10 overflow-hidden">
                 <div className="relative w-full h-[45vh] min-h-87.5 flex flex-col justify-between">
-                    <div className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out" style={{ backgroundImage: `url('${currentImageSrc}')` }}></div>
+                    {/* 🚀 GPU: เพิ่ม transform-gpu และ will-change-[background-image] สำหรับเลื่อนภาพให้ลื่นไหล */}
+                    <div className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out transform-gpu will-change-[background-image]" style={{ backgroundImage: `url('${currentImageSrc}')` }}></div>
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-primary-dark to-transparent"></div>
 

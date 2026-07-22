@@ -20,4 +20,8 @@ export interface Teacher {
         facebook?: string;
         line?: string;
     };
+
+    // Pre-computed ตอนสร้างข้อมูล (ตัวพิมพ์เล็กทั้งหมด): name + firstName + lastName + position + phone
+    // ใช้สำหรับ .includes() ตอนค้นหา จะได้ไม่ต้อง toLowerCase() ซ้ำทุกครั้งที่ผู้ใช้พิมพ์
+    searchText: string;
 }

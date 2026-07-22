@@ -32,19 +32,26 @@ export default function App() {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const locId = params.get("loc");
+        
+        // 🚀 แก้ไข Type ตรงนี้
+        let timeoutId: ReturnType<typeof setTimeout>;
+
         if (locId) {
             const targetLoc = locations.find((l) => String(l.id).toLowerCase() === locId.toLowerCase());
             if (targetLoc) {
-                setTimeout(() => setSelectedLocation(targetLoc), 100);
+                timeoutId = setTimeout(() => setSelectedLocation(targetLoc), 100);
                 window.history.replaceState({}, "", window.location.pathname);
             }
         }
+        
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, []);
 
     const isDimmed = !!(deferredSearch || selectedLocation);
 
     const { teacherSearchIndex, locationSearchIndex, locationLookup } = useMemo(() => {
-        const teacherList = Object.values(teachersData) as Teacher[];
         const locMap = new Map<string, MapLocation>();
 
         const lIndex = locations.map((loc) => {
@@ -57,10 +64,12 @@ export default function App() {
             };
         });
 
-        const tIndex = teacherList.map((t) => ({
+        // 🚀 teachersData เป็น Array อยู่แล้ว (ไม่ต้อง Object.values())
+        // และแต่ละคนมี `searchText` pre-compute มาจากไฟล์ data ตั้งแต่ตอน import แล้ว
+        // (รวม name + firstName + lastName + position + phone) จึงไม่ต้องคำนวณ toLowerCase() ซ้ำที่นี่อีก
+        const tIndex = teachersData.map((t) => ({
             ...t,
             cleanLocIds: (t.locationIds || []).map((id) => String(id).trim().toLowerCase()),
-            searchText: `${t.title || ""} ${t.firstName || ""} ${t.lastName || ""} ${t.name || ""} ${t.position || ""}`.toLowerCase(),
         }));
 
         return { teacherSearchIndex: tIndex, locationSearchIndex: lIndex, locationLookup: locMap };
@@ -127,11 +136,16 @@ export default function App() {
     };
 
     return (
-        <div ref={mapContainerRef} className={`w-full h-screen flex flex-col overflow-hidden font-sans relative transition-colors duration-500 ${isDimmed ? "bg-slate-200" : "bg-app-bg"}`}>
-            <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} showPins={showPins} setShowPins={setShowPins} />
+       <div 
+        ref={mapContainerRef} 
+        className={`w-full h-screen flex flex-col overflow-hidden font-sans relative transition-all duration-500 ${isDimmed ? "bg-slate-200" : ""}`}
+        style={{
+            background: isDimmed ? undefined : "var(--color-app-bg)"
+        }}
+    >
+     <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} showPins={showPins} setShowPins={setShowPins} />
 
             <div className="absolute top-15 md:top-28 bottom-0 left-0 right-0 z-0 overflow-hidden">
-                {/* 🚀 ปรับ initialScale เป็น 0.5 สำหรับมือถือ เพื่อให้ซูมออกสุดๆ เห็นแผนที่กว้างๆ */}
                 <TransformWrapper initialScale={isMobile ? 0.5 : 1} minScale={0.5} maxScale={4} centerOnInit={true} wheel={{ step: 0.1 }}>
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>

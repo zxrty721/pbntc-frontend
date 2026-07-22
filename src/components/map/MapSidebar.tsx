@@ -1,5 +1,5 @@
 import { Building2, Search, X, User, ExternalLink, Share2, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react"; // 🚀 CPU Optimization: เพิ่ม useMemo
 import type { MapLocation, Teacher } from "../../assets/types";
 
 interface MapSidebarProps {
@@ -22,18 +22,31 @@ const BADGE_COLORS = [
     { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
 ];
 
+// 🚀 CPU Optimization: Cache ผลการคำนวณสี ลดภาระ CPU ในการคำนวณ Hash สำหรับ 100+ ตึก
+const colorCache = new Map<string, typeof BADGE_COLORS[0]>();
+
 const getColorForId = (id: string | number) => {
     const stringId = String(id);
+    if (colorCache.has(stringId)) return colorCache.get(stringId)!; // ดึงค่าที่เคยคิดแล้วมาใช้ทันที
+
     let hash = 0;
     for (let i = 0; i < stringId.length; i++) {
         hash = stringId.charCodeAt(i) + ((hash << 5) - hash);
     }
     const index = Math.abs(hash) % BADGE_COLORS.length;
-    return BADGE_COLORS[index];
+    const color = BADGE_COLORS[index];
+    
+    colorCache.set(stringId, color); // บันทึกค่าไว้ใช้รอบหน้า
+    return color;
 };
 
 export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLocations, selectedLocation, onSelectLocation, searchedTeachers = [], onSelectTeacher }: MapSidebarProps) {
     const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    // 🚀 CPU Optimization: ใช้ useMemo ป้องกันการ .sort() ใหม่ทุกๆ รอบที่ Render 
+    const sortedLocations = useMemo(() => {
+        return [...filteredLocations].sort((a, b) => a.code.localeCompare(b.code));
+    }, [filteredLocations]);
 
     const handleCopyLink = (e: React.MouseEvent, locId: string | number) => {
         e.stopPropagation();
@@ -45,23 +58,19 @@ export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLoca
     };
 
     return (
-        // 🚀 เปลี่ยนมาใช้ CSS Transform ล้วนๆ:
-        // - มือถือใช้ translate-y (เลื่อนขึ้น/ลง)
-        // - คอมพ์ใช้ translate-x (เลื่อนซ้าย/ขวา) แบบไม่หดความกว้าง
         <div
             className={`absolute z-30 flex flex-col bg-white shadow-2xl transition-transform duration-300 ease-out
             bottom-0 left-0 right-0 rounded-t-3xl max-h-[75vh] min-h-[50vh]
             md:top-28 md:bottom-0 md:left-0 md:w-85 md:rounded-none md:max-h-none md:border-r md:border-slate-300
+            transform-gpu will-change-transform /* 🚀 GPU Optimization: ให้การ์ดจอรับผิดชอบ Animation นี้ */
             ${isSidebarOpen ? "translate-y-0 md:translate-x-0" : "translate-y-full md:translate-y-0 md:-translate-x-full"}
         `}
         >
             <div className="flex flex-col shrink-0 bg-white z-10 border-b border-slate-200 rounded-t-3xl md:rounded-none">
-                {/* ขีดลากสำหรับมือถือ */}
                 <div className="w-full flex justify-center pt-2.5 pb-1 md:hidden cursor-grab active:cursor-grabbing" onClick={() => setSidebarOpen(false)}>
                     <div className="w-10 h-1.5 bg-slate-200 rounded-full"></div>
                 </div>
 
-                {/* พื้นที่ข้อความ Header */}
                 <div className="flex items-center justify-between px-4 pb-3 md:pt-4 md:px-5">
                     <div className="flex items-center gap-2.5 text-slate-800 font-black">
                         <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg md:rounded-xl">
@@ -69,24 +78,20 @@ export default function MapSidebar({ isSidebarOpen, setSidebarOpen, filteredLoca
                         </div>
                         <span className="text-sm md:text-base tracking-tight">{searchedTeachers.length > 0 ? `พบอาจารย์ (${searchedTeachers.length} ท่าน)` : `รายชื่ออาคาร (${filteredLocations.length})`}</span>
                     </div>
-                    {/* 🚀 ให้ปุ่ม X แสดงบนคอมด้วย เพื่อให้กดปิดจากแถบข้างได้สะดวกๆ */}
                     <button onClick={() => setSidebarOpen(false)} className="p-1.5 bg-slate-100 text-slate-500 rounded-full hover:bg-primary/10 hover:text-primary transition-colors active:scale-95">
                         <X size={18} strokeWidth={2.5} />
                     </button>
                 </div>
             </div>
 
-            {/* 📜 Content List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-4 space-y-3 bg-slate-50/80 pb-16 md:pb-6">
-                {filteredLocations.length > 0 ? (
-                    [...filteredLocations]
-                        .sort((a, b) => a.code.localeCompare(b.code))
-                        .map((loc) => {
+                {sortedLocations.length > 0 ? ( // 🚀 เรียกใช้ข้อมูลที่ถูก sort เอาไว้ใน useMemo แล้ว
+                    sortedLocations.map((loc) => {
                             const isActive = selectedLocation?.id === loc.id;
                             const teachersInThisBuilding = searchedTeachers.filter((t) => (t.locationIds || []).some((id) => String(id).trim().toLowerCase() === String(loc.id).trim().toLowerCase()));
                             const isCopied = copiedId === String(loc.id);
 
-                            const badgeColor = getColorForId(loc.id);
+                            const badgeColor = getColorForId(loc.id); // จะทำงานเร็วขึ้นมากเพราะดึงจาก Cache
 
                             return (
                                 <div key={loc.id} className={`flex flex-col rounded-2xl transition-all duration-300 border-2 overflow-hidden bg-white shadow-xs hover:shadow-md ${isActive ? "border-primary shadow-primary/10" : "border-slate-100 hover:border-primary/30"}`}>

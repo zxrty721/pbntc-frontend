@@ -1,3 +1,7 @@
+
+
+export type DepartmentKey = string; // ใช้เป็น key สำหรับ Department
+
 export interface Department {
     id: string;    // รหัสแผนก เช่น "IT", "MECH", "ACC"
     name: string;  // ชื่อเต็มภาษาไทย เช่น "แผนกวิชาเทคโนโลยีสารสนเทศ"
